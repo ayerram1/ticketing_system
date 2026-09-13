@@ -83,6 +83,23 @@ isAdmin: (req, res, next) => {
             res.status(403).json({ error: "Forbidden: Staff access required" });
         }
     },
+    isSelfOrAdmin: (req, res, next) => {
+    const requestedUserId = parseInt(req.params.user_id, 10);
+    const loggedInUserId = req.user?.id;
+    const loggedInRole = req.user?.role;
+
+    if (loggedInRole === "admin") {
+      return next();
+    }
+
+    if (loggedInRole === "TA" && loggedInUserId === requestedUserId) {
+      return next();
+    }
+
+    return res.status(403).json({
+      error: "Forbidden: You can only modify your own information.",
+    });
+  },
   canViewTAProfile: (req, res, next) => {
     const requestedUserId = parseInt(req.params.user_id);
     const requestingUserId = req.user.id;

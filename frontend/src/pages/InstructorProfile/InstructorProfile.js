@@ -53,14 +53,15 @@ const InstructorProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isUser, setIsUser] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [saveStatus, setSaveStatus] = useState(null);
   const [newTime, setNewTime] = useState(null);
-  const [time, setTime] = useState({monday: {start: '', end: ''}, 
-			    tuesday: {start: '', end: ''},
-	 		    wednesday: {start: '', end: ''},
-			    thursday: {start: '', end: ''},
-			    friday: {start: '', end: ''},
-			    saturday: {start: '', end: ''},
-			    sunday: {start: '', end: ''}});  
+  const [time, setTime] = useState({monday: {start: '', end: '', location: ''}, 
+			    tuesday: {start: '', end: '', location: ''},
+	 		    wednesday: {start: '', end: '', location: ''},
+			    thursday: {start: '', end: '', location: ''},
+			    friday: {start: '', end: '', location: ''},
+			    saturday: {start: '', end: '', location: ''},
+			    sunday: {start: '', end: '', location: ''}});  
   const [selectedDays, setSelectedDays] = useState({
   monday: false,
   tuesday: false,
@@ -179,11 +180,17 @@ const InstructorProfile = () => {
     if (response.ok) {
       await fetchOfficeHours();
       setIsEditing(false);
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus(null), 3000);
     } else {
       console.error('Failed to save office hours:', result);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus(null), 3000);
     }
     } catch (error) {
       console.error('failed to save office hours', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus(null), 3000);
     }
   };
   const handleCloseClick = () => {
@@ -964,6 +971,17 @@ const InstructorProfile = () => {
           </Button>
 	 )}
         </Box>
+
+  {saveStatus === 'success' && (
+    <Typography sx={{ color: 'success.main', textAlign: 'center', fontWeight: 500 }}>
+      ✓ Office hours saved successfully.
+    </Typography>
+  )}
+  {saveStatus === 'error' && (
+    <Typography sx={{ color: 'error.main', textAlign: 'center', fontWeight: 500 }}>
+      ✗ Failed to save office hours. Please try again.
+    </Typography>
+  )}
         	
 	<div style={{ display: "grid", flexDirection: "column", justifyContent: "center" }}>
 	{isEditing ? (
@@ -994,6 +1012,13 @@ const InstructorProfile = () => {
 		   onChange={e=> handleChange("monday", "end", e.target.value)}
 		   style={{ width: "120px" }}
 		   />
+       <input type="text"
+        placeholder="Location"
+        maxLength={100}
+        value={time.monday.location}
+        onChange={e=> handleChange("monday", "location", e.target.value)}
+        style={{ width: "180px" }}
+        />
 	</div>
 	
         <label> <input
@@ -1017,6 +1042,13 @@ const InstructorProfile = () => {
 		   onChange={e=> handleChange("tuesday", "end", e.target.value)}
 		   style={{ width: "120px" }}
    		   />
+         <input type="text"
+        placeholder="Location"
+        maxLength={100}
+        value={time.tuesday.location}
+        onChange={e=> handleChange("tuesday", "location", e.target.value)}
+        style={{ width: "180px" }}
+        />
         </div>
         <label> <input
           type="checkbox"
@@ -1038,6 +1070,13 @@ const InstructorProfile = () => {
 		   onChange={e=> handleChange("wednesday", "end", e.target.value)}
 		   style={{ width: "120px" }}
    		   />
+         <input type="text"
+        placeholder="Location"
+        maxLength={100}
+        value={time.wednesday.location}
+        onChange={e=> handleChange("wednesday", "location", e.target.value)}
+        style={{ width: "180px" }}
+        />
         </div>
         <label> <input
           type="checkbox"
@@ -1059,6 +1098,13 @@ const InstructorProfile = () => {
 		   onChange={e=> handleChange("thursday", "end", e.target.value)}
 		   style={{ width: "120px" }}
   		   />
+         <input type="text"
+        placeholder="Location"
+        maxLength={100}
+        value={time.thursday.location}
+        onChange={e=> handleChange("thursday", "location", e.target.value)}
+        style={{ width: "180px" }}
+        />
         </div>
         <label> <input
           type="checkbox"
@@ -1080,6 +1126,13 @@ const InstructorProfile = () => {
 		   onChange={e=> handleChange("friday", "end", e.target.value)}
 		   style={{ width: "120px" }}
 		   />
+       <input type="text"
+        placeholder="Location"
+        maxLength={100}
+        value={time.friday.location}
+        onChange={e=> handleChange("friday", "location", e.target.value)}
+        style={{ width: "180px" }}
+        />
         </div>
         <label> <input
           type="checkbox"
@@ -1101,6 +1154,13 @@ const InstructorProfile = () => {
 		   onChange={e=> handleChange("saturday", "end", e.target.value)}
 		   style={{ width: "120px" }}
 		   />
+       <input type="text"
+        placeholder="Location"
+        maxLength={100}
+        value={time.saturday.location}
+        onChange={e=> handleChange("saturday", "location", e.target.value)}
+        style={{ width: "180px" }}
+        />
         </div>
         <label> <input
           type="checkbox"
@@ -1122,6 +1182,13 @@ const InstructorProfile = () => {
 		   onChange={e=> handleChange("sunday", "end", e.target.value)}
 		   style={{ width: "120px" }}
 		   />
+       <input type="text"
+        placeholder="Location"
+        maxLength={100}
+        value={time.sunday.location}
+        onChange={e=> handleChange("sunday", "location", e.target.value)}
+        style={{ width: "180px" }}
+        />
         </div>
           </Typography>
 	<div style= {{ display: "flex", flexDirection: "row", justifyContent: "space-between" }} >
@@ -1146,42 +1213,49 @@ const InstructorProfile = () => {
 	    <label> Monday: </label>
 	    <div style={{ display: "flex", alignItems: "left", gap: "8px" }}>
             {handleDisplayTime(time.monday.start)} - {handleDisplayTime(time.monday.end)}
+            {time.monday.location && ` (${time.monday.location})`}
 	    </div>
             </>)}
           {selectedDays.tuesday && (time.tuesday.start != '' && time.tuesday.end != '') && ( <>
 	    <label> Tuesday: </label>
             <div style={{ display: "flex", alignItems: "left", gap: "8px" }}>
             {handleDisplayTime(time.tuesday.start)} - {handleDisplayTime(time.tuesday.end)}
+            {time.tuesday.location && ` (${time.tuesday.location})`}
 	    </div>
             </>)}
           {selectedDays.wednesday && (time.wednesday.start != '' && time.wednesday.end != '') && ( <>
 	    <label> Wednesday: </label>
             <div style={{ display: "flex", alignItems: "left", gap: "8px" }}>
             {handleDisplayTime(time.wednesday.start)} - {handleDisplayTime(time.wednesday.end)}
+            {time.wednesday.location && ` (${time.wednesday.location})`}
             </div>
 	    </>)}
           {selectedDays.thursday && (time.thursday.start != '' && time.thursday.end != '') && ( <>
 	    <label> Thursday: </label>
             <div style={{ display: "flex", alignItems: "left", gap: "8px" }}>
             {handleDisplayTime(time.thursday.start)} - {handleDisplayTime(time.thursday.end)}
+            {time.thursday.location && ` (${time.thursday.location})`}
             </div>
 	    </>)}
           {selectedDays.friday && (time.friday.start != '' && time.friday.end != '') && ( <>
 	    <label> Friday: </label>
             <div style={{ display: "flex", alignItems: "left", gap: "8px" }}>
             {handleDisplayTime(time.friday.start)} - {handleDisplayTime(time.friday.end)}
+            {time.friday.location && ` (${time.friday.location})`}
             </div>
 	    </>)}
           {selectedDays.saturday && (time.saturday.start != '' && time.saturday.end != '') && ( <>
 	    <label> Saturday: </label>
             <div style={{ display: "flex", alignItems: "left", gap: "8px" }}>
             {handleDisplayTime(time.saturday.start)} - {handleDisplayTime(time.saturday.end)}
+            {time.saturday.location && ` (${time.saturday.location})`}
             </div>
 	    </>)}
           {selectedDays.sunday && (time.sunday.start != '' && time.sunday.end != '') && ( <>
 	    <label> Sunday: </label>
             <div style={{ display: "flex", alignItems: "left", gap: "8px" }}>
             {handleDisplayTime(time.sunday.start)} - {handleDisplayTime(time.sunday.end)}
+            {time.sunday.location && ` (${time.sunday.location})`}
             </div>
 	    </>)}
           </Typography>
