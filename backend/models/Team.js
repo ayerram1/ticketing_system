@@ -30,6 +30,22 @@ const Team = sequelize.define("Team", {
   grader_email: {
       type: DataTypes.STRING,
       allowNull: true,
+  },
+  cohort_start_semester: {
+      type: DataTypes.STRING,
+      allowNull: true,
+  },
+  current_semester: {
+      type: DataTypes.STRING,
+      allowNull: true,
+  },
+  capstone_course: {
+      type: DataTypes.STRING,
+      allowNull: true,
+  },
+  program_type: {
+      type: DataTypes.STRING,
+      allowNull: true,
   }
 },{
   tableName: 'teams', // Ensure the table name is lowercase

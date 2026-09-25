@@ -27,6 +27,10 @@ function DownloadTemplate({ ftype }) {
         { label: "instructor email", key: "instructor email" },
         { label: "grader", key: "grader" },
         { label: "grader email", key: "grader email" },
+        { label: "cohort_start_semester", key: "cohort_start_semester" },
+        { label: "current_semester", key: "current_semester" },
+        { label: "capstone_course", key: "capstone_course" },
+        { label: "program_type", key: "program_type" },
       ],
     };
     const headers = headermap[ftype];
@@ -34,26 +38,31 @@ function DownloadTemplate({ ftype }) {
 
     const datamap = {
       student: [
-        { name: `"Livingston, Remington"`, 
+        { name: `"Buckridge, Jimmie"`, 
           canvas_user_id: 561555, 
-          user_id: 1352688424, 
-          login_id: "WEOFCN", 
-          sections: 87968, 
-          group_name: "Project 10", 
+          user_id: 6, 
+          login_id: "Jimmie.Buckridge", 
+          sections: 64475, 
+          group_name: "Turcotte and Sons", 
           canvas_group_id: 690105, 
-          sponsor: "sponsor1@gmail.com"
+          sponsor: "admin1@asu.edu"
         },
       ],
       project: [
-        { project: "Project 10", 
-          sponsor: "sponsor Name", 
-          "sponsor email": "sponsor1@gmail.com", 
-          instructor: "instructor1", 
+        { project: "Turcotte and Sons", 
+          sponsor: "Maurine Farrell", 
+          "sponsor email": "admin1@asu.edu", 
+          instructor: "Myrna Daniel", 
           "instructor email":
-          "instructor@asu.edu",
-          grader: "Grader1",
+          "Myrna_Daniel@asu.edu",
+          grader: "Jordan Lee",
           "grader email":
-          "grader1@asu.edu",},
+          "jordan.lee@asu.edu",
+          cohort_start_semester: "Spring 2026",
+          current_semester: "Fall 2026",
+          capstone_course: "Capstone 2",
+          program_type: "Online",
+        },
       ]
     };
     const data = datamap[ftype];
