@@ -917,7 +917,14 @@ const ManageStudents = () => {
                                                 align="center"
                                                 sx={{ color: theme.palette.text.primary }}
                                             >
-                                                {student.semester || "N/A"}
+                                                <Typography variant="body2">
+                                                    {student.semester || "N/A"}
+                                                </Typography>
+                                                {student.capstone_course && student.capstone_course !== "N/A" && (
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {student.capstone_course}
+                                                    </Typography>
+                                                )}
                                             </TableCell>
                                             <TableCell
                                                 align="center"

@@ -25,6 +25,34 @@ const serializeHistoryValue = (value) => {
   return String(value);
 };
 
+const addTeamUpdateIfChanged = async ({
+  team,
+  teamUpdates,
+  fieldName,
+  nextValue,
+  uploadBatchId,
+  changedBy,
+  transaction,
+}) => {
+  if (!valuesDiffer(team[fieldName], nextValue)) return false;
+
+  await recordBulkUploadChange({
+    uploadBatchId,
+    entityType: "team",
+    entityId: getTeamId(team),
+    entityName: team.team_name,
+    changeType: "updated",
+    fieldName,
+    oldValue: team[fieldName],
+    newValue: nextValue,
+    changedBy,
+    transaction,
+  });
+
+  teamUpdates[fieldName] = nextValue;
+  return true;
+};
+
 const recordBulkUploadChange = async ({
   uploadBatchId,
   entityType,
@@ -141,6 +169,10 @@ exports.importBulk = async (req, res) => {
               sponsor_email: trimValue(row.sponsor_email),
               grader_name: trimValue(row.grader),
               grader_email: trimValue(row.grader_email),
+              cohort_start_semester: trimValue(row.cohort_start_semester),
+              current_semester: trimValue(row.current_semester),
+              capstone_course: trimValue(row.capstone_course),
+              program_type: trimValue(row.program_type),
             },
             { transaction }
           );
@@ -158,42 +190,27 @@ exports.importBulk = async (req, res) => {
             transaction,
           });
         } else {
-          const nextSponsorName = trimValue(row.sponsor);
-          const nextSponsorEmail = trimValue(row.sponsor_email);
           const teamUpdates = {};
+          const updateFields = {
+            sponsor_name: trimValue(row.sponsor),
+            sponsor_email: trimValue(row.sponsor_email),
+            cohort_start_semester: trimValue(row.cohort_start_semester),
+            current_semester: trimValue(row.current_semester),
+            capstone_course: trimValue(row.capstone_course),
+            program_type: trimValue(row.program_type),
+          };
 
-          if (valuesDiffer(team.sponsor_name, nextSponsorName)) {
-            changesTracked += 1;
-            await recordBulkUploadChange({
+          for (const [fieldName, nextValue] of Object.entries(updateFields)) {
+            const changed = await addTeamUpdateIfChanged({
+              team,
+              teamUpdates,
+              fieldName,
+              nextValue,
               uploadBatchId,
-              entityType: "team",
-              entityId: getTeamId(team),
-              entityName: team.team_name,
-              changeType: "updated",
-              fieldName: "sponsor_name",
-              oldValue: team.sponsor_name,
-              newValue: nextSponsorName,
               changedBy,
               transaction,
             });
-            teamUpdates.sponsor_name = nextSponsorName;
-          }
-
-          if (valuesDiffer(team.sponsor_email, nextSponsorEmail)) {
-            changesTracked += 1;
-            await recordBulkUploadChange({
-              uploadBatchId,
-              entityType: "team",
-              entityId: getTeamId(team),
-              entityName: team.team_name,
-              changeType: "updated",
-              fieldName: "sponsor_email",
-              oldValue: team.sponsor_email,
-              newValue: nextSponsorEmail,
-              changedBy,
-              transaction,
-            });
-            teamUpdates.sponsor_email = nextSponsorEmail;
+            if (changed) changesTracked += 1;
           }
 
           if (Object.keys(teamUpdates).length > 0) {
