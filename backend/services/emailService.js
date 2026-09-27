@@ -22,7 +22,35 @@ const logEmail = async (to, subject, text, status, options = {}, errorMessage = 
 };
 
 if (process.env.NODE_ENV !== "production") {
+  /*
+  // DEV: using Mailpit for local email testing
+  const transporter = nodemailer.createTransport({
+    host: "127.0.0.1",
+    port: 1025,
+    secure: false,
+  });
+
   module.exports = async (to, subject, text, options = {}) => {
+    try {
+      const info = await transporter.sendMail({
+        from: "local-test@localhost",
+        to,
+        subject,
+        text,
+      });
+
+      console.log("DEV email sent, messageId:", info.messageId);
+      await logEmail(to, subject, text, "success", options);
+      return true;
+    } catch (err) {
+      console.error("DEV email failed:", err);
+      await logEmail(to, subject, text, "failed", options, err.message);
+      throw err;
+    }
+  };
+  */
+
+    module.exports = async (to, subject, text, options = {}) => {
     console.log("DEV MODE: email disabled");
     await logEmail(to, subject, text, "success", options);
     return true;
