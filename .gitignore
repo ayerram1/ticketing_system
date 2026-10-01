@@ -2,15 +2,12 @@
 node_modules/
 **/node_modules/
 
-# Certificates and SSL keys (CRITICAL FOR PUBLIC REPOS)
-certs/
-**/certs/
-*.pem
+# Certificates and SSL keys (Ignore private key, allow public cert)
+backend/certs/sp-key.pem
 *.key
-*.crt
 *.pfx
 *.p12
-*.csr
+!backend/certs/sp-cert.pem
 
 # Environment variables & secrets
 .env
