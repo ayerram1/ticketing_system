@@ -5,7 +5,8 @@ const sendEmail = require("../services/emailService");
 const { validatePassword } = require("../utils/passwordValidator");
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const email = String(req.body.email ?? "").trim().toLowerCase();
+  const { password } = req.body;
 
   try {
     const user = await User.findOne({ where: { email } });
@@ -41,7 +42,8 @@ exports.login = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  const { name, email, password, role, must_change_password } = req.body;
+  const { name, password, role, must_change_password } = req.body;
+  const email = String(req.body.email ?? "").trim().toLowerCase();
   // const { name, email, password, role, asu_id } = req.body;
   // if (!asu_id || !/^\d{10}$/.test(asu_id)) {
   //   return res.status(400).json({ error: "Invalid ASU ID. It must be a 10-digit number." });

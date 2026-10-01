@@ -107,6 +107,10 @@ const BulkUploadHistory = () => {
       sponsor_name: "Sponsor Name",
       sponsor_email: "Sponsor Email",
       name: "Student Name",
+      cohort_start_semester: "Cohort Start Semester",
+      current_semester: "Current Semester",
+      capstone_course: "Capstone Course",
+      program_type: "Cohort Type",
     };
     return labels[fieldName] || fieldName || "Change";
   };

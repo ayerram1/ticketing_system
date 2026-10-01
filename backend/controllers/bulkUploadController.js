@@ -5,6 +5,7 @@ const Team = require("../models/Team");
 const StudentData = require("../models/StudentData");
 const TeamMember = require("../models/TeamMember");
 const BulkUploadChangeHistory = require("../models/BulkUploadChangeHistory");
+const sendEmail = require("../services/emailService");
 
 const normalizeTeamName = (value) =>
   String(value ?? "")
@@ -13,6 +14,7 @@ const normalizeTeamName = (value) =>
     .trim();
 
 const trimValue = (value) => String(value ?? "").trim();
+const normalizeEmail = (value) => String(value ?? "").trim().toLowerCase();
 
 const getUserId = (u) => u?.user_id ?? u?.id;
 const getTeamId = (t) => t?.team_id ?? t?.id;
@@ -23,6 +25,34 @@ const valuesDiffer = (oldValue, newValue) =>
 const serializeHistoryValue = (value) => {
   if (value === undefined || value === null) return null;
   return String(value);
+};
+
+const addTeamUpdateIfChanged = async ({
+  team,
+  teamUpdates,
+  fieldName,
+  nextValue,
+  uploadBatchId,
+  changedBy,
+  transaction,
+}) => {
+  if (!valuesDiffer(team[fieldName], nextValue)) return false;
+
+  await recordBulkUploadChange({
+    uploadBatchId,
+    entityType: "team",
+    entityId: getTeamId(team),
+    entityName: team.team_name,
+    changeType: "updated",
+    fieldName,
+    oldValue: team[fieldName],
+    newValue: nextValue,
+    changedBy,
+    transaction,
+  });
+
+  teamUpdates[fieldName] = nextValue;
+  return true;
 };
 
 const recordBulkUploadChange = async ({
@@ -53,13 +83,17 @@ const recordBulkUploadChange = async ({
   );
 };
 
+const createTempPassword = () => `Temp#${Math.random().toString(36).slice(2, 10)}A1`;
+
 const createTempPasswordHash = async () => {
-  const temp = `Temp#${Math.random().toString(36).slice(2, 10)}A1`;
-  return bcrypt.hash(temp, 10);
+  const temp = createTempPassword();
+  const hash = await bcrypt.hash(temp, 10);
+  return { temp, hash };
 };
 
-const findOrCreateUserByEmail = async ({ name, email, role, transaction }) => {
-  const cleanEmail = trimValue(email);
+
+const findOrCreateUserByEmail = async ({ name, email, role, transaction, pendingEmails }) => {
+  const cleanEmail = normalizeEmail(email);
   const cleanName = trimValue(name);
 
   if (!cleanEmail) throw new Error(`Missing email for ${role}`);
@@ -68,19 +102,54 @@ const findOrCreateUserByEmail = async ({ name, email, role, transaction }) => {
   const existing = await User.findOne({ where: { email: cleanEmail }, transaction });
   if (existing) return { user: existing, created: false };
 
-  const password = await createTempPasswordHash();
+  const { temp, hash } = await createTempPasswordHash();
   const created = await User.create(
     {
       name: cleanName,
       email: cleanEmail,
-      password,
+      password: hash,
       role,
       must_change_password: true,
     },
     { transaction }
   );
 
+  if (pendingEmails) {
+    pendingEmails.push({ name: cleanName,
+      email: cleanEmail,
+      password: temp, role });
+  }
+
   return { user: created, created: true };
+};
+
+const sendWelcomeEmail = async ({ name, email, password, role }) => {
+  const subject = "Welcome to the ASU Capstone Help Desk System";
+  const emailBody =
+  `
+  Hello ${name},
+
+  Your account has been created for the ASU Capstone Help Desk System.
+
+  Login at: https://helpdesk.asucapstonetools.com/login 
+
+  Email: ${email}
+  Password: ${password}
+  Role: ${role}
+
+  Please change your password after your first login. Password is generated for one time use.
+
+  If you have any questions or need assistance, please contact your instructor or reach out for assistance
+
+  Best regards,
+  ASU Capstone Help Desk Team`;
+
+  try {
+    await sendEmail(email, subject, emailBody, { emailType: "bulk_upload_welcome" });
+    console.log("Bulk upload welcome email sent to", email);
+  } catch (emailError) {
+    console.error(`Failed to send bulk upload welcome email to ${email}:`, emailError);
+  }
 };
 
 exports.importBulk = async (req, res) => {
@@ -88,6 +157,7 @@ exports.importBulk = async (req, res) => {
   const uploadBatchId = `bulk-upload-${Date.now()}`;
   const changedBy = req.user?.id || req.user?.user_id || null;
   let changesTracked = 0;
+  const pendingEmails = [];
 
   if (!Array.isArray(projectRows) || !Array.isArray(studentRows)) {
     return res.status(400).json({
@@ -109,6 +179,7 @@ exports.importBulk = async (req, res) => {
           email: instructorEmail,
           role: "TA",
           transaction,
+          pendingEmails,
         });
       }
 
@@ -141,6 +212,10 @@ exports.importBulk = async (req, res) => {
               sponsor_email: trimValue(row.sponsor_email),
               grader_name: trimValue(row.grader),
               grader_email: trimValue(row.grader_email),
+              cohort_start_semester: trimValue(row.cohort_start_semester),
+              current_semester: trimValue(row.current_semester),
+              capstone_course: trimValue(row.capstone_course),
+              program_type: trimValue(row.program_type),
             },
             { transaction }
           );
@@ -158,42 +233,27 @@ exports.importBulk = async (req, res) => {
             transaction,
           });
         } else {
-          const nextSponsorName = trimValue(row.sponsor);
-          const nextSponsorEmail = trimValue(row.sponsor_email);
           const teamUpdates = {};
+          const updateFields = {
+            sponsor_name: trimValue(row.sponsor),
+            sponsor_email: trimValue(row.sponsor_email),
+            cohort_start_semester: trimValue(row.cohort_start_semester),
+            current_semester: trimValue(row.current_semester),
+            capstone_course: trimValue(row.capstone_course),
+            program_type: trimValue(row.program_type),
+          };
 
-          if (valuesDiffer(team.sponsor_name, nextSponsorName)) {
-            changesTracked += 1;
-            await recordBulkUploadChange({
+          for (const [fieldName, nextValue] of Object.entries(updateFields)) {
+            const changed = await addTeamUpdateIfChanged({
+              team,
+              teamUpdates,
+              fieldName,
+              nextValue,
               uploadBatchId,
-              entityType: "team",
-              entityId: getTeamId(team),
-              entityName: team.team_name,
-              changeType: "updated",
-              fieldName: "sponsor_name",
-              oldValue: team.sponsor_name,
-              newValue: nextSponsorName,
               changedBy,
               transaction,
             });
-            teamUpdates.sponsor_name = nextSponsorName;
-          }
-
-          if (valuesDiffer(team.sponsor_email, nextSponsorEmail)) {
-            changesTracked += 1;
-            await recordBulkUploadChange({
-              uploadBatchId,
-              entityType: "team",
-              entityId: getTeamId(team),
-              entityName: team.team_name,
-              changeType: "updated",
-              fieldName: "sponsor_email",
-              oldValue: team.sponsor_email,
-              newValue: nextSponsorEmail,
-              changedBy,
-              transaction,
-            });
-            teamUpdates.sponsor_email = nextSponsorEmail;
+            if (changed) changesTracked += 1;
           }
 
           if (Object.keys(teamUpdates).length > 0) {
@@ -219,7 +279,7 @@ exports.importBulk = async (req, res) => {
         if (!teamId) throw new Error(`Missing team_id for ${teamName}`);
 
         const name = trimValue(row.name).replace(/,/g, "");
-        const loginId = trimValue(row.login_id);
+        const loginId = trimValue(row.login_id).toLowerCase();
         if (!loginId) throw new Error(`Missing login_id for student ${name || "(unknown)"}`);
 
         const studentEmail = `${loginId}@asu.edu`;
@@ -231,17 +291,23 @@ exports.importBulk = async (req, res) => {
         });
 
         if (!student) {
-          const password = await createTempPasswordHash();
+          const { temp, hash } = await createTempPasswordHash();
           student = await User.create(
             {
               name: name || studentEmail,
               email: studentEmail,
-              password,
+              password: hash,
               role: "student",
               must_change_password: true,
             },
             { transaction }
           );
+          pendingEmails.push({
+            name: name || studentEmail,
+            email: studentEmail,
+            password: temp,
+            role: "student",
+          });
           changesTracked += 1;
           await recordBulkUploadChange({
             uploadBatchId,
@@ -417,14 +483,18 @@ exports.importBulk = async (req, res) => {
           email: trimValue(row.grader_email),
           role: "grader",
           transaction,
+          pendingEmails,
         });
       }
     });
+
+    await Promise.allSettled(pendingEmails.map((u) => sendWelcomeEmail(u)));
 
     return res.status(200).json({
       message: "Bulk import completed successfully",
       uploadBatchId,
       changesTracked,
+      emailsSent: pendingEmails.length,
     });
   } catch (error) {
     return res.status(400).json({

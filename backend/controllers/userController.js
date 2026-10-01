@@ -182,12 +182,19 @@ exports.getUsersByRole = async (req, res) => {
                 {
                     model: StudentData,
                     required: false,
-                    attributes: ['section', 'semester'],
+                    attributes: ['team_id', 'section', 'semester'],
                     include: [
                         {
                             model: Team,
                             required: false,
-                            attributes: ['team_name', 'sponsor_name'],
+                            attributes: [
+                                'team_name',
+                                'sponsor_name',
+                                'cohort_start_semester',
+                                'current_semester',
+                                'capstone_course',
+                                'program_type',
+                            ],
                         }
                     ]
                 }
@@ -208,8 +215,13 @@ exports.getUsersByRole = async (req, res) => {
                   name: u.name,
                   email: u.email,
                   is_enabled: u.is_enabled,
-                  last_login: u.last_login,
-                  semester: sData.semester || "N/A",
+                                last_login: u.last_login,
+                                team_id: sData.team_id || null,
+                                semester: team.current_semester || sData.semester || "N/A",
+                                cohort_start_semester: team.cohort_start_semester || "N/A",
+                                current_semester: team.current_semester || "N/A",
+                                capstone_course: team.capstone_course || "N/A",
+                                program_type: team.program_type || "N/A",
                   section: sData.section || "N/A",
                   sponsor: team.sponsor_name || "N/A",
                   team_name: team.team_name || "N/A"

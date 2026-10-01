@@ -83,7 +83,18 @@ exports.getTeamByNameQuery = async (req, res) => {
 
 exports.createTeam = async (req, res) => {
   try {
-    const {team_name, instructor_user_id, sponsor_name, sponsor_email, grader_name, grader_email} = req.body;
+    const {
+      team_name,
+      instructor_user_id,
+      sponsor_name,
+      sponsor_email,
+      grader_name,
+      grader_email,
+      cohort_start_semester,
+      current_semester,
+      capstone_course,
+      program_type,
+    } = req.body;
 
     const normalizedTeamName = normalizeTeamName(team_name);
     if (!normalizedTeamName) {
@@ -99,6 +110,10 @@ exports.createTeam = async (req, res) => {
         sponsor_email,
         grader_name,
         grader_email,
+        cohort_start_semester,
+        current_semester,
+        capstone_course,
+        program_type,
       },
     });
     if (created) {
