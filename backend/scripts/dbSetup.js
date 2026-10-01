@@ -6,7 +6,7 @@ require("dotenv").config();
 // Initialize connection pool
 const pool = new Pool({
   connectionString:
-  	"postgresql://ticketing_user:ticketing_pass@127.0.0.1:5432/ticketing_system",
+  	"postgresql://myuser:mypassword@127.0.0.1:5432/mydatabase",
 	//ssl: { rejectUnauthorized: false }, // Only needed if using SSL in production
 });
 
