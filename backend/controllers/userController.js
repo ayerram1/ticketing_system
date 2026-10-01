@@ -141,7 +141,6 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.user_id);
@@ -175,7 +174,7 @@ exports.getUsersByRole = async (req, res) => {
 
         let queryOptions = {
             where: { role },
-            attributes: ['user_id', 'name', 'email', 'is_enabled'],
+            attributes: ['user_id', 'name', 'email', 'is_enabled', 'last_login'],
         };
 
         if (role === 'student') {
@@ -204,11 +203,12 @@ exports.getUsersByRole = async (req, res) => {
                 const sData = u.StudentData || u.StudentDatum || {};
                 const team = sData.Team || {};
 
-              return {
+                        return {
                   user_id: u.user_id,
                   name: u.name,
                   email: u.email,
                   is_enabled: u.is_enabled,
+                  last_login: u.last_login,
                   semester: sData.semester || "N/A",
                   section: sData.section || "N/A",
                   sponsor: team.sponsor_name || "N/A",

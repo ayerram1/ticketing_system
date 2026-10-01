@@ -24,6 +24,9 @@ exports.login = async (req, res) => {
           return res.status(403).json({ error: "Account is disabled" });
       }
 
+    user.last_login = new Date();
+    await user.save();
+
     const token = jwt.sign({ id: user.user_id, role: user.role, name: user.name }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
