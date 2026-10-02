@@ -104,8 +104,11 @@ const BulkUploadHistory = () => {
     const labels = {
       section: "Section",
       team_id: "Team",
+      instructor_user_id: "Instructor",
       sponsor_name: "Sponsor Name",
       sponsor_email: "Sponsor Email",
+      grader_name: "Grader Name",
+      grader_email: "Grader Email",
       name: "Student Name",
       cohort_start_semester: "Cohort Start Semester",
       current_semester: "Current Semester",

@@ -191,9 +191,37 @@ exports.importBulk = async (req, res) => {
           });
         } else {
           const teamUpdates = {};
+
+          if (valuesDiffer(team.instructor_user_id, instructorUserId)) {
+            const oldInstructor = team.instructor_user_id
+              ? await User.findByPk(team.instructor_user_id, { transaction })
+              : null;
+          
+            changesTracked += 1;
+          
+            await recordBulkUploadChange({
+              uploadBatchId,
+              entityType: "team",
+              entityId: getTeamId(team),
+              entityName: team.team_name,
+              changeType: "updated",
+              fieldName: "instructor_user_id",
+              oldValue: oldInstructor
+                ? `${oldInstructor.name} (#${team.instructor_user_id})`
+                : team.instructor_user_id,
+              newValue: `${instructorUser.name} (#${instructorUserId})`,
+              changedBy,
+              transaction,
+            });
+          
+            teamUpdates.instructor_user_id = instructorUserId;
+          }
+
           const updateFields = {
             sponsor_name: trimValue(row.sponsor),
             sponsor_email: trimValue(row.sponsor_email),
+            grader_name: trimValue(row.grader),
+            grader_email: trimValue(row.grader_email),
             cohort_start_semester: trimValue(row.cohort_start_semester),
             current_semester: trimValue(row.current_semester),
             capstone_course: trimValue(row.capstone_course),
