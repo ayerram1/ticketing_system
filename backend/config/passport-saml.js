@@ -16,8 +16,8 @@ const idpCert = (fs.existsSync(idpCertPath) ? fs.readFileSync(idpCertPath, 'utf8
 
 const samlStrategy = new SamlStrategy(
   {
-    // Point to ASU IdP SSO Entry Point (Use weblogin-test.asu.edu during testing)
-    entryPoint: process.env.ASU_IDP_ENTRYPOINT || 'https://weblogin-test.asu.edu/idp/profile/SAML2/Redirect/SSO',
+    // Point to ASU IdP SSO Entry Point (Production: weblogin.asu.edu)
+    entryPoint: process.env.ASU_IDP_ENTRYPOINT || 'https://weblogin.asu.edu/idp/profile/SAML2/Redirect/SSO',
     issuer: process.env.SAML_SP_ENTITY_ID || 'https://helpdesk.asucapstonetools.com/shibboleth',
     callbackUrl: process.env.SAML_CALLBACK_URL || 'https://helpdesk.asucapstonetools.com/api/auth/saml/callback',
     

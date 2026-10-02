@@ -1,5 +1,6 @@
 const express = require("express");
 const passport = require("passport");
+const { samlStrategy } = require("../config/passport-saml");
 const authController = require("../controllers/authController");
 const samlController = require("../controllers/samlControllers");
 
@@ -11,6 +12,6 @@ router.post("/register", authController.register);
 // SSO SAML Routes
 router.get("/saml/login", passport.authenticate("saml", { failureRedirect: "/login", session: false }));
 router.post("/saml/callback", passport.authenticate("saml", { failureRedirect: "/login", session: false }), samlController.samlCallback);
-router.get("/saml/metadata", (req, res) => samlController.generateMetadata(req, res, passport._strategy('saml')));
+router.get("/saml/metadata", (req, res) => samlController.generateMetadata(req, res, samlStrategy));
 
 module.exports = router;
