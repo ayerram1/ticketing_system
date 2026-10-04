@@ -89,11 +89,24 @@ const ReplySection = () => {
         );
         setShouldRefresh((prev) => !prev);
         setNewReplyText("");
+
+        //Scrolls down along with reply
+        //Needs timeout in order to wait for refresh of replys
+        setTimeout(()=>{
+          window.scrollTo({top:document.documentElement.scrollHeight, behavior: 'smooth'});
+        }, 175);
       } catch (err) {
         console.log(err);
       }
     }
   };
+
+  //Used in order to reach the bottom of the page
+  const handleScrollD = async () =>{
+    window.scrollTo({top:document.documentElement.scrollHeight, behavior: 'smooth'});
+  };
+
+
 
   return (
     <>
@@ -103,6 +116,13 @@ const ReplySection = () => {
           {repliesData.length > 0 && (
             <>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>Conversation History:</Typography>
+              <Button
+                className="postButton"
+                variant="contained"
+                onClick ={handleScrollD}
+                >
+                  Recent Reply
+              </Button>
               {repliesData.map((reply) => (
                 <ReplyBox
                   key={reply.communication_id}
@@ -138,6 +158,7 @@ const ReplySection = () => {
             className="postButton"
             variant="contained"
             onClick={handleSubmit}
+            
           >
             Post Reply
           </Button>
