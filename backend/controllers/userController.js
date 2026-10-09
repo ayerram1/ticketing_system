@@ -141,7 +141,6 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.user_id);
@@ -175,7 +174,7 @@ exports.getUsersByRole = async (req, res) => {
 
         let queryOptions = {
             where: { role },
-            attributes: ['user_id', 'name', 'email', 'is_enabled'],
+            attributes: ['user_id', 'name', 'email', 'is_enabled', 'last_login'],
         };
 
         if (role === 'student') {
@@ -211,17 +210,18 @@ exports.getUsersByRole = async (req, res) => {
                 const sData = u.StudentData || u.StudentDatum || {};
                 const team = sData.Team || {};
 
-              return {
+                        return {
                   user_id: u.user_id,
                   name: u.name,
                   email: u.email,
                   is_enabled: u.is_enabled,
-                  team_id: sData.team_id || null,
-                  semester: team.current_semester || sData.semester || "N/A",
-                  cohort_start_semester: team.cohort_start_semester || "N/A",
-                  current_semester: team.current_semester || "N/A",
-                  capstone_course: team.capstone_course || "N/A",
-                  program_type: team.program_type || "N/A",
+                                last_login: u.last_login,
+                                team_id: sData.team_id || null,
+                                semester: team.current_semester || sData.semester || "N/A",
+                                cohort_start_semester: team.cohort_start_semester || "N/A",
+                                current_semester: team.current_semester || "N/A",
+                                capstone_course: team.capstone_course || "N/A",
+                                program_type: team.program_type || "N/A",
                   section: sData.section || "N/A",
                   sponsor: team.sponsor_name || "N/A",
                   team_name: team.team_name || "N/A"

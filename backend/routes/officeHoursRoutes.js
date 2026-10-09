@@ -15,6 +15,7 @@ router.put(
   "/users/:user_id",
   authMiddleware.verifyToken,
   authMiddleware.isTAOrAdmin,
+  authMiddleware.isSelfOrAdmin,
   officeHoursController.assignOfficeHours
 );
 module.exports = router;
