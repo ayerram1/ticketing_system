@@ -277,6 +277,27 @@ Cookies.set("name", userName, {
                                 Sign in
                             </Button>
 
+                            <Button
+                                fullWidth
+                                variant="outlined"
+                                onClick={() => {
+                                    const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3301';
+                                    window.location.href = `${apiBaseUrl}/api/auth/saml/login`;
+                                }}
+                                sx={{
+                                    mt: 1.5,
+                                    borderColor: '#8C1D40',
+                                    color: '#8C1D40',
+                                    fontWeight: 'bold',
+                                    '&:hover': {
+                                        borderColor: '#8C1D40',
+                                        backgroundColor: '#8C1D4010',
+                                    }
+                                }}
+                            >
+                                Sign in with ASU SSO
+                            </Button>
+
                             
                             {/*<Typography>
                                 Don&apos;t have an account?{" "}

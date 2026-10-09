@@ -48,6 +48,7 @@ import EmailLogs from "./pages/EmailLogs/EmailLogs";
 import TeamSponsorHistory from "./pages/ManageUsers/TeamSponsorHistory";
 import CreateTicket from "./components/CreateTicket/CreateTicket";
 import BulkUploadHistory from "./pages/BulkUploadHistory/BulkUploadHistory";
+import SSOSuccess from "./pages/SSOSuccess/SSOSuccess";
 
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
     <Routes>
         {/* --- PUBLIC ROUTES --- */}
       <Route path="/login" element={<Login />} />
+      <Route path="/sso-success" element={<SSOSuccess />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/registration" element={<Registration />} />
       <Route path="/resetpassword" element={<ResetPassword />} />
