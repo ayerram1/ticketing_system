@@ -7,6 +7,7 @@ import HourglassTopIcon from "@mui/icons-material/HourglassTop";
 import { useDropzone } from "react-dropzone";
 import DownloadTemplate from "../../services/bulkUploadServices/downloadTemplate";
 import Stack from "@mui/material/Stack";
+import Cookies from "js-cookie";
 import {
     Button,
     Typography,
@@ -31,6 +32,8 @@ const BulkUpload = () => {
     const [uploadMessage, setUploadMessage] = useState("");
     const [overallProgress, setOverallProgress] = useState(0);
     const [errorDetails, setErrorDetails] = useState([]);
+    const [previewData, setPreviewData] = useState(null);
+    const [validatedRows, setValidatedRows] = useState(null);
     
     const navigate = useNavigate();
     const theme = useTheme();
@@ -110,6 +113,25 @@ const BulkUpload = () => {
         multiple: false,
     });
 
+    const previewBulk = async ({ projectRows, studentRows }) => {
+        const token = Cookies.get("token");
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/bulk-upload/preview`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ projectRows, studentRows }),
+        });
+    
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(data.error || data.message || "Bulk upload preview failed");
+        }
+    
+        return data;
+    };
+
     const handleUploadFiles = async () => {
         if (!studentFile || !projectFile) {
             alert("Please select both files to upload.");
@@ -148,14 +170,19 @@ const BulkUpload = () => {
             setUploadMessage("Importing data...");
             setOverallProgress(65);
 
-            await importBulk({
-                projectRows: extractRows(verifyProjectResult),
-                studentRows: extractRows(verifyStudentResult),
-            });
+            const projectRows = extractRows(verifyProjectResult);
+            const studentRows = extractRows(verifyStudentResult);
             
-            setUploadStep("done");
-            setUploadMessage("Upload completed successfully.");
-            setOverallProgress(100);
+            setUploadMessage("Preparing preview...");
+            setOverallProgress(80);
+            
+            const preview = await previewBulk({ projectRows, studentRows });
+            
+            setValidatedRows({ projectRows, studentRows });
+            setPreviewData(preview);
+            setUploadStep("preview");
+            setUploadMessage("Preview ready. Review changes before importing.");
+            setOverallProgress(90);
             setErrorDetails([]);
         } catch (err) {
             setFailedStep(uploadStep === "idle" ? "importing-data" : uploadStep);
@@ -167,6 +194,40 @@ const BulkUpload = () => {
         }
     };
 
+    const handleConfirmImport = async () => {
+        if (!validatedRows) return;
+    
+        try {
+            setIsUploading(true);
+            setUploadStep("importing-data");
+            setUploadMessage("Importing data...");
+            setOverallProgress(65);
+    
+            await importBulk(validatedRows);
+    
+            setUploadStep("done");
+            setUploadMessage("Upload completed successfully.");
+            setOverallProgress(100);
+            setErrorDetails([]);
+            setPreviewData(null);
+            setValidatedRows(null);
+        } catch (err) {
+            setFailedStep("importing-data");
+            setUploadStep("error");
+            setUploadMessage("Upload failed: " + err.message);
+            setErrorDetails([err.message || String(err)]);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleCancelPreview = () => {
+        setPreviewData(null);
+        setValidatedRows(null);
+        setUploadStep("idle");
+        setUploadMessage("");
+        setOverallProgress(0);
+    };
 
     return ( <>
         <Box
@@ -413,9 +474,94 @@ const BulkUpload = () => {
                     </Box>
                 )}
 
+                {previewData && uploadStep === "preview" && (
+                    <Box sx={{ mb: 3, p: 2, border: `1px solid ${theme.palette.divider}`, borderRadius: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                            Preview Changes
+                        </Typography>
+
+                        <Typography variant="body2">
+                            Teams created: {previewData.summary?.teamsCreated || 0}
+                        </Typography>
+                        <Typography variant="body2">
+                            Teams updated: {previewData.summary?.teamsUpdated || 0}
+                        </Typography>
+                        <Typography variant="body2">
+                            Students created: {previewData.summary?.studentsCreated || 0}
+                        </Typography>
+                        <Typography variant="body2">
+                            Students updated: {previewData.summary?.studentsUpdated || 0}
+                        </Typography>
+                        <Typography variant="body2" sx={{ mb: 2 }}>
+                            Students moved: {previewData.summary?.studentsMoved || 0}
+                        </Typography>
+
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mt: 2 }}>
+                            Team Changes
+                        </Typography>
+                        {(previewData.teamChanges || []).slice(0, 10).map((change, index) => (
+                            <Box key={`team-${index}`} sx={{ mt: 1, pl: 1 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                    {change.teamName} ({change.type})
+                                </Typography>
+                                {(change.fields || []).map((field, fieldIndex) => (
+                                    <Typography key={fieldIndex} variant="caption" sx={{ display: "block" }}>
+                                        {field.field}: {field.before || "none"} → {field.after || "none"}
+                                    </Typography>
+                                ))}
+                            </Box>
+                        ))}
+
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mt: 2 }}>
+                            Student Changes
+                        </Typography>
+                        {(previewData.studentChanges || []).slice(0, 10).map((change, index) => (
+                            <Box key={`student-${index}`} sx={{ mt: 1, pl: 1 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                    {change.studentName} ({change.type})
+                                </Typography>
+                                {(change.fields || []).map((field, fieldIndex) => (
+                                    <Typography key={fieldIndex} variant="caption" sx={{ display: "block" }}>
+                                        {field.field}: {field.before || "none"} → {field.after || "none"}
+                                    </Typography>
+                                ))}
+                            </Box>
+                        ))}
+
+                        <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                            <Button variant="contained" disabled={isUploading} onClick={handleConfirmImport}>
+                                Confirm Import
+                            </Button>
+                            <Button variant="outlined" disabled={isUploading} onClick={handleCancelPreview}>
+                                Cancel
+                            </Button>
+                        </Box>
+                    </Box>
+                )}
+
                 <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-                    <Button variant="contained" disabled={isUploading} onClick={() => handleUploadFiles()} >Upload Files</Button>
-                    <Button variant="outlined" disabled={isUploading} onClick={() => { setStudentFile(null); setProjectFile(null); }}>Clear</Button>
+                    <Button
+                        variant="contained"
+                        disabled={isUploading || uploadStep === "preview"}
+                        onClick={() => handleUploadFiles()}
+                    >
+                        Upload
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        disabled={isUploading}
+                        onClick={() => {
+                            setStudentFile(null);
+                            setProjectFile(null);
+                            setPreviewData(null);
+                            setValidatedRows(null);
+                            setUploadStep("idle");
+                            setUploadMessage("");
+                            setOverallProgress(0);
+                        }}
+                    >
+                        Clear
+                    </Button>
                 </Box>
 
             </Box>
