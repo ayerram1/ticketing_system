@@ -25,8 +25,10 @@ exports.samlCallback = (req, res) => {
 exports.generateMetadata = (req, res, samlStrategy) => {
   try {
     const certPath = path.join(__dirname, '../certs/sp-cert.pem');
-    const decryptionCert = fs.existsSync(certPath) ? fs.readFileSync(certPath, 'utf8') : '';
-    const metadata = samlStrategy.generateServiceProviderMetadata(decryptionCert, decryptionCert);
+    const cert = process.env.SAML_SP_CERT 
+      ? process.env.SAML_SP_CERT.replace(/\\n/g, '\n') 
+      : (fs.existsSync(certPath) ? fs.readFileSync(certPath, 'utf8') : '');
+    const metadata = samlStrategy.generateServiceProviderMetadata(cert, cert);
     res.type('application/xml').send(metadata);
   } catch (err) {
     res.status(500).json({ error: err.message });
