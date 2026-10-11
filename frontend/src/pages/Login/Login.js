@@ -61,6 +61,9 @@ export default function SignIn() {
         } else if (errorParam === "AccountIsDisabled") {
             setEmailError(true);
             setEmailErrorMessage("This account has been disabled. Please contact an administrator.");
+        } else if (errorParam === "SAMLNotConfigured") {
+            setEmailError(true);
+            setEmailErrorMessage("SSO private key is not yet configured on this server. Please contact an administrator.");
         } else if (errorParam) {
             setEmailError(true);
             setEmailErrorMessage("SSO login failed. Please try again or log in with credentials.");
