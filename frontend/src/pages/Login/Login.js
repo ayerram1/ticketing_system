@@ -51,6 +51,22 @@ export default function SignIn() {
     const [showPass, setShowPass] = React.useState(false);
     const baseURL = process.env.REACT_APP_API_BASE_URL;
 
+    React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const errorParam = params.get("error");
+
+        if (errorParam === "UserNotFound") {
+            setEmailError(true);
+            setEmailErrorMessage("No account associated with this ASU email was found. Please contact an administrator.");
+        } else if (errorParam === "AccountIsDisabled") {
+            setEmailError(true);
+            setEmailErrorMessage("This account has been disabled. Please contact an administrator.");
+        } else if (errorParam) {
+            setEmailError(true);
+            setEmailErrorMessage("SSO login failed. Please try again or log in with credentials.");
+        }
+    }, []);
+
     const handleClickOpen = () => navigate("/requestreset");
     const handleClose = () => setOpen(false);
     const handleSignUp = () => navigate("/registration");

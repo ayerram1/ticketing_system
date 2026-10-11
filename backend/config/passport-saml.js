@@ -42,19 +42,12 @@ const samlStrategy = new SamlStrategy(
         return done(new Error('No email released from ASU Shibboleth'), null);
       }
 
-      // Find or provision user in DB
+      // Find user in DB
       let user = await User.findOne({ where: { email } });
 
       if (!user) {
-        // Auto-provision student account on first SSO login
-        user = await User.create({
-          name: name || asurite,
-          email: email,
-          role: 'student', // Default role; can be updated by admin/coordinator
-          password: 'SSO_EXTERNAL_USER', // Dummy password for SAML users
-          is_enabled: true,
-          must_change_password: false,
-        });
+        // Do NOT create an account. Reject authentication.
+        return done(null, false, { message: 'UserNotFound' });
       }
 
       return done(null, user);

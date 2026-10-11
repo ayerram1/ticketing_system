@@ -11,7 +11,23 @@ router.post("/register", authController.register);
 
 // SSO SAML Routes
 router.get("/saml/login", passport.authenticate("saml", { failureRedirect: "/login", session: false }));
-router.post("/saml/callback", passport.authenticate("saml", { failureRedirect: "/login", session: false }), samlController.samlCallback);
+router.post("/saml/callback", (req, res, next) => {
+  passport.authenticate("saml", { session: false }, (err, user, info) => {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+    if (err) {
+      return res.redirect(`${frontendUrl}/login?error=SSOFailed`);
+    }
+
+    if (!user) {
+      const errorType = (info && info.message) || "UserNotFound";
+      return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(errorType)}`);
+    }
+
+    req.user = user;
+    return samlController.samlCallback(req, res);
+  })(req, res, next);
+});
 router.get("/saml/metadata", (req, res) => samlController.generateMetadata(req, res, samlStrategy));
 
 module.exports = router;
