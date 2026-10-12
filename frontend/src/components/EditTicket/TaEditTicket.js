@@ -273,6 +273,7 @@ const TaEditTicket = ({ onClose}) => {
                         multiline
                         rows={8}
                         variant="outlined"
+                        slotProps={{htmlInput: { maxLength: 3000 }}}
                     />
 
                     <Button

@@ -18,7 +18,7 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.22.1",
+    "express": "^4.22.3",
     "Faker": "^0.7.2",
     "fs": "^0.0.1-security",
     "isomorphic-fetch": "^3.0.0",

@@ -491,7 +491,13 @@ exports.createTicket = async (req, res) => {
   try {
     console.log(" Request Body:", req.body); //  Debugging input data
 
-    const { student_id } = req.body;
+    const { student_id, team_id, issue_description, sponsor_name, section, issue_type } = req.body;
+
+    const MAX_LENGTH = 3000;
+
+    if (issue_description.length > MAX_LENGTH) {
+      return res.status(400).json({ error: "MAX 3,000 characters allowed" }); 
+    }
 
     // Check if student exists
     const student = await User.findByPk(student_id);
@@ -503,7 +509,14 @@ exports.createTicket = async (req, res) => {
     console.log(" Student found:", student.name); //  Log correct name
 
     // Create ticket
-    const ticket = await Ticket.create(req.body);
+    const ticket = await Ticket.create({
+      student_id,
+      team_id,
+      issue_description,
+      sponsor_name,
+      section,
+      issue_type,
+    });
 
     res.status(201).json({
       ...ticket.dataValues,
@@ -515,9 +528,6 @@ exports.createTicket = async (req, res) => {
     res.status(512).json({ error: error.message });
   }
 };
-
-
-
 
 exports.updateTicket = async (req, res) => {
   try {

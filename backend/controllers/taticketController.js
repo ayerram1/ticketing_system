@@ -311,6 +311,12 @@ exports.createTicket = async (req, res) => {
 
         const { ta_id, student_id, issue_description, issue_type } = req.body;
 
+        const MAX_LENGTH = 3000;
+        
+        if (issue_description.length > MAX_LENGTH) {
+            return res.status(400).json({ error: "MAX 3,000 characters allowed" });
+        }
+
         // 1. Validate TA
         const ta = await User.findByPk(ta_id);
         if (!ta) return res.status(404).json({ error: "TA not found" });
@@ -399,7 +405,6 @@ exports.editTicket = async (req, res) => {
         if (!ticket) {
             return res.status(404).json({ error: "Ticket not found" });
         }
-
         const previousStatus = ticket.status;
         const previousEscalated = ticket.escalated;
 
