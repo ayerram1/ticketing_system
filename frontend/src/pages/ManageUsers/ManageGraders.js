@@ -50,6 +50,7 @@ const ManageGraders = () => {
     // Add state for new TA inputs
     const [newGraderName, setNewGraderName] = useState("");
     const [newGraderEmail, setNewGraderEmail] = useState("");
+    const [newGraderPopup, setGraderPopup] = useState(false); // new implementation
 
     // Add new state for selection and action menu
     const [selectedGraders, setSelectedGraders] = useState([]);
@@ -210,6 +211,7 @@ const ManageGraders = () => {
             setNewGraderName("");
             setNewGraderEmail("");
             fetchGraders(); // Refresh the list of TAs
+            graderConfirmationPopup(); // new implementation
         } catch (error) {
             console.error(error);
         }
@@ -226,6 +228,12 @@ const ManageGraders = () => {
             setSelectedGraders([]);
         }
     };
+
+    const graderConfirmationPopup = () => { // new implementation
+        setGraderPopup(true);
+        const timer = setTimeout(() => { setGraderPopup(false); }, 3000);
+        return () => clearTimeout(timer);
+    }
 
     // Handlers for the delete modal
     const handleDelete = (ta) => {
@@ -429,10 +437,26 @@ const ManageGraders = () => {
                         sx={{
                             marginBottom: 2,
                             fontWeight: "bold",
+                            display: 'inline-flex', // new implementation
                             color: theme.palette.text.primary
                         }}
                     >
                         Add New Grader
+
+                    <Box 
+                        sx={{ // new Implementation
+                            color: 'green', 
+                            fontWeight: 'bold',
+                            justifyContent: "center", 
+                            marginBottom: 2, 
+                            position: 'relative',
+                            transition: 'opacity 1s ease-in-out', 
+                            marginLeft: '12px',
+                            opacity: newGraderPopup ? 1 : 0
+                        }}
+                    >
+                            Successfully Added Grader
+                    </Box> 
                     </Typography>
                     <Box sx={{ display: "flex", gap: 1.25 }}>
                         <TextField
