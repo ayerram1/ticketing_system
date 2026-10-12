@@ -12,8 +12,16 @@ router.get(
 );
 
 router.post(
+  "/preview",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  bulkUploadController.previewBulk
+);
+
+router.post(
   "/import",
   authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
   bulkUploadController.importBulk
 );
 

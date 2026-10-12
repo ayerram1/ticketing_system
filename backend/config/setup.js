@@ -57,6 +57,10 @@ module.exports = (app) => {
   // Setup JSON parsing middleware
   app.use(require("express").json());
 
+  // Setup Passport SAML middleware
+  const { passport } = require("./passport-saml");
+  app.use(passport.initialize());
+
   // Setup the backend to serve the front end
   app.use(express.static(FRONTEND_BUILD_PATH));
 
