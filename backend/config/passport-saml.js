@@ -9,10 +9,23 @@ const spKeyPath = path.join(certDir, 'sp-key.pem');
 const spCertPath = path.join(certDir, 'sp-cert.pem');
 const idpCertPath = path.join(certDir, 'asu-idp-cert.pem');
 
-const spKey = fs.existsSync(spKeyPath) ? fs.readFileSync(spKeyPath, 'utf8') : '';
-const spCert = fs.existsSync(spCertPath) ? fs.readFileSync(spCertPath, 'utf8') : '';
-// Use asu-idp-cert.pem if provided, otherwise fallback to spCert until ASU IT responds
-const idpCert = (fs.existsSync(idpCertPath) ? fs.readFileSync(idpCertPath, 'utf8') : spCert) || spCert;
+// Read private key from environment variable first, then fallback to certs directory
+const spKey = process.env.SAML_SP_PRIVATE_KEY 
+  ? process.env.SAML_SP_PRIVATE_KEY.replace(/\\n/g, '\n') 
+  : (fs.existsSync(spKeyPath) ? fs.readFileSync(spKeyPath, 'utf8') : '');
+
+// Read public certificate from environment variable first, then fallback to certs directory
+const spCert = process.env.SAML_SP_CERT 
+  ? process.env.SAML_SP_CERT.replace(/\\n/g, '\n') 
+  : (fs.existsSync(spCertPath) ? fs.readFileSync(spCertPath, 'utf8') : '');
+
+// Safe placeholder cert so server never crashes on startup if certs are missing
+const placeholderCert = '-----BEGIN CERTIFICATE-----\nMIIC\n-----END CERTIFICATE-----';
+
+// Use asu-idp-cert.pem if provided, otherwise fallback to spCert or placeholder
+const idpCert = process.env.ASU_IDP_CERT
+  ? process.env.ASU_IDP_CERT.replace(/\\n/g, '\n')
+  : ((fs.existsSync(idpCertPath) ? fs.readFileSync(idpCertPath, 'utf8') : spCert) || spCert || placeholderCert);
 
 const samlStrategy = new SamlStrategy(
   {
@@ -25,10 +38,9 @@ const samlStrategy = new SamlStrategy(
     idpCert: idpCert,
     cert: idpCert,
     
-    // SP Private Key
-    privateKey: spKey,
-    
-    decryptionPki: spKey,
+    // SP Private Key (optional if not uploaded yet)
+    privateKey: spKey || undefined,
+    decryptionPki: spKey || undefined,
     identifierFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
   },
   async (profile, done) => {
@@ -42,19 +54,12 @@ const samlStrategy = new SamlStrategy(
         return done(new Error('No email released from ASU Shibboleth'), null);
       }
 
-      // Find or provision user in DB
+      // Find user in DB
       let user = await User.findOne({ where: { email } });
 
       if (!user) {
-        // Auto-provision student account on first SSO login
-        user = await User.create({
-          name: name || asurite,
-          email: email,
-          role: 'student', // Default role; can be updated by admin/coordinator
-          password: 'SSO_EXTERNAL_USER', // Dummy password for SAML users
-          is_enabled: true,
-          must_change_password: false,
-        });
+        // Do NOT create an account. Reject authentication.
+        return done(null, false, { message: 'UserNotFound' });
       }
 
       return done(null, user);
@@ -66,4 +71,4 @@ const samlStrategy = new SamlStrategy(
 
 passport.use('saml', samlStrategy);
 
-module.exports = { passport, samlStrategy };
+module.exports = { passport, samlStrategy, spKey, spCert };
