@@ -104,6 +104,7 @@ const TaReplySection = () => {
                         multiline
                         rows={4}
                         label="Enter Your Reply Here"
+                        slotProps={{htmlInput: { maxLength: 3000 }}}
                         value={newReplyText}
                         onChange={handleChange}
                     />
