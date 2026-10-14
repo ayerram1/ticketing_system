@@ -141,6 +141,7 @@ const ReplySection = () => {
             multiline
             rows={2}
             label="Enter Your Reply Here"
+            slotProps={{htmlInput: { maxLength: 3000 }}}
             value={newReplyText}
             onChange={handleChange}
             sx={{

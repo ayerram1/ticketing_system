@@ -316,6 +316,7 @@ const CreateTicket = ({ onClose }) => {
                         label="Description" required fullWidth multiline rows={4}
                         value={description} onChange={(e) => setDescription(e.target.value)}
                         placeholder="Please provide as much detail as possible..."
+                        slotProps={{htmlInput: { maxLength: 3000 }}} 
                     />
 
                     <Button type="submit" variant="contained" disabled={loading}
