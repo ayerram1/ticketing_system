@@ -3,6 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import React, { useState } from "react";
 import TicketView from "./TicketView/TicketView"; // Import TicketView component
 import { generateTicketNumber } from "../constants/IssueTypes";
+import { formatTicketCreationDate } from "../utils/ticketDateRange";
 // minor change for git tracking
 function stringAvatar(name) {
   return {
@@ -72,17 +73,6 @@ const TicketCard = ({
 
   const handleCloseTicketView = () => {
     setShowTicketView(false);
-  };
-
-  // Format the created date to exclude time
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
   };
 
   const normalizedStatus = status ? status.toLowerCase() : "unknown";
@@ -239,7 +229,7 @@ const TicketCard = ({
             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
               Created:
             </Typography>
-            <Typography variant="body2">{formatDate(createdAt)}</Typography>
+            <Typography variant="body2">{formatTicketCreationDate(createdAt)}</Typography>
           </div>
         </div>
 
