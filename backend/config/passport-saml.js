@@ -2,6 +2,7 @@ const passport = require('passport');
 const { Strategy: SamlStrategy } = require('@node-saml/passport-saml');
 const fs = require('fs');
 const path = require('path');
+const sequelize = require('./db');
 const User = require('../models/User');
 
 const certDir = path.join(__dirname, '../certs');
@@ -45,17 +46,31 @@ const samlStrategy = new SamlStrategy(
   },
   async (profile, done) => {
     try {
-      // Extract attributes released by ASU Shibboleth
-      const email = profile.email || profile.mail || profile['urn:oid:0.9.2342.19200300.100.1.3'];
-      const name = profile.displayName || profile.cn || `${profile.givenName || ''} ${profile.sn || ''}`.trim();
-      const asurite = profile.uid || profile.nameID;
+      console.log("🔍 Attributes released by ASU:", Object.keys(profile), profile);
 
-      if (!email) {
-        return done(new Error('No email released from ASU Shibboleth'), null);
+      // Extract ASURITE ID from all common ASU Shibboleth attribute names
+      const rawAsurite = 
+        profile.uid || 
+        profile['urn:oid:0.9.2342.19200300.100.1.1'] || 
+        profile.nameID || 
+        profile['urn:oid:1.3.6.1.4.1.5923.1.1.1.6'] || 
+        profile.eduPersonPrincipalName || 
+        '';
+
+      // Ensure ASURITE is stripped of any @asu.edu suffix, trimmed, and lowercased
+      const asurite = rawAsurite.replace(/@asu\.edu$/i, '').trim().toLowerCase();
+
+      if (!asurite) {
+        return done(new Error('No ASURITE ID found in SAML assertion'), null);
       }
 
-      // Find user in DB
-      let user = await User.findOne({ where: { email } });
+      // ONLY use ${asurite}@asu.edu for user lookup
+      const email = `${asurite}@asu.edu`;
+
+      // Find user strictly by ${asurite}@asu.edu (case-insensitive)
+      let user = await User.findOne({
+        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('email')), email)
+      });
 
       if (!user) {
         // Do NOT create an account. Reject authentication.
