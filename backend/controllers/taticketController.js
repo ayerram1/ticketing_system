@@ -7,7 +7,8 @@ const {
     notifyTaTicketStatusChanged,
     notifyTaTicketEscalationChanged,
 } = require("../services/ticketNotificationService");
-
+const { Op } = require("sequelize");
+const { getCreationDateRange } = require("../utils/dateRange");
 exports.getAllTickets = async (req, res) => {
     try {
         // Extract pagination parameters from query string
@@ -21,7 +22,9 @@ exports.getAllTickets = async (req, res) => {
             escalated,
             on_behalf_of,
             hideResolved,
-            sort
+            sort,
+            startDate,
+            endDate
         } = req.query;
 
         const pageNum = parseInt(page);
@@ -46,8 +49,17 @@ exports.getAllTickets = async (req, res) => {
         if (on_behalf_of) whereClause.on_behalf_of = on_behalf_of;
         // Only apply hideResolved when there is no explicit status filter provided
         if (hideResolved === 'true' && typeof whereClause.status === 'undefined') {
-            const { Op } = require('sequelize');
             whereClause.status = { [Op.ne]: 'resolved' };
+        }
+
+        const creationDateRange = getCreationDateRange({ startDate, endDate });
+        if (creationDateRange.error) {
+            return res.status(400).json({ error: creationDateRange.error });
+        }
+        if (creationDateRange.start || creationDateRange.endExclusive) {
+            whereClause.created_at = {};
+            if (creationDateRange.start) whereClause.created_at[Op.gte] = creationDateRange.start;
+            if (creationDateRange.endExclusive) whereClause.created_at[Op.lt] = creationDateRange.endExclusive;
         }
 
         // Build order clause for sorting
@@ -94,7 +106,6 @@ exports.getAllTickets = async (req, res) => {
 
         // Get summary counts (all tickets, ignoring pagination but respecting filters)
         let totalTickets, openTickets, closedTickets, escalatedTickets;
-        const { Op } = require('sequelize');
         
         try {
             totalTickets = await TaTicket.count({ where: whereClause });

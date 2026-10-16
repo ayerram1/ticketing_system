@@ -7,6 +7,7 @@ import {
   Typography,
   Box,
   Avatar,
+  Alert,
 } from "@mui/material";
 import ArticleIcon from "@mui/icons-material/Article";
 import { useTheme } from "@mui/material/styles";
@@ -16,8 +17,12 @@ import { useNavigate } from "react-router-dom";
 import TicketsViewController from "../../components/TicketsViewController";
 import TaTicketsViewController from "../../components/TaTicketsViewController";
 import Pagination from "../../components/Pagination/Pagination";
+import { getDateRangeError, matchesTicketDateRange } from "../../utils/ticketDateRange";
+import { fetchAllTicketPages } from "../../services/paginatedTicketFetch";
 
-const baseURL = process.env.REACT_APP_API_BASE_URL;
+// The local backend's development default is 3301. Deployed environments
+// continue to use the configured API base URL.
+const baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3301";
 
 const defaultActiveFilters = {
   sort: null,
@@ -27,6 +32,8 @@ const defaultActiveFilters = {
   ticketIdSearch: "",
   teamNameSearch: "",
   sectionSearch: "",
+  startDate: "",
+  endDate: "",
 };
 
 const AllTickets = () => {
@@ -34,6 +41,7 @@ const AllTickets = () => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [totalTickets, setTotalTickets] = useState(0);
   const [escalatedTickets, setEscalatedTickets] = useState(0);
   const [openTickets, setOpenTickets] = useState(0);
@@ -41,6 +49,7 @@ const AllTickets = () => {
   const [filterAnchor, setFilterAnchor] = useState(null);
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [activeFilters, setActiveFilters] = useState(defaultActiveFilters);
+  const dateRangeError = getDateRangeError(activeFilters.startDate, activeFilters.endDate);
 
 
 
@@ -101,14 +110,14 @@ const AllTickets = () => {
 
   useEffect(() => {
     if (!isInitialized) return;
-    fetchTickets();
-  }, [hideResolved, isInitialized]);
+    if (!dateRangeError) fetchTickets();
+  }, [hideResolved, activeFilters.startDate, activeFilters.endDate, dateRangeError, isInitialized]);
 
 
 
   useEffect(() => {
     applyFilters();
-  }, [tickets, activeFilters.search, activeFilters.teamNameSearch, activeFilters.sectionSearch, activeFilters.source, activeFilters.sort, activeFilters.status, hideResolved, studentCurrentPage, studentItemsPerPage, taCurrentPage, taItemsPerPage]);
+  }, [tickets, activeFilters.search, activeFilters.teamNameSearch, activeFilters.sectionSearch, activeFilters.source, activeFilters.sort, activeFilters.status, activeFilters.startDate, activeFilters.endDate, hideResolved, studentCurrentPage, studentItemsPerPage, taCurrentPage, taItemsPerPage]);
 
   useEffect(() => {
     if (activeFilters.status && activeFilters.status.toLowerCase() === "resolved") {
@@ -123,6 +132,12 @@ const AllTickets = () => {
 
     const applyFiltersToArray = (ticketArray) => {
       let filtered = [...ticketArray];
+
+      if (!dateRangeError && (activeFilters.startDate || activeFilters.endDate)) {
+        filtered = filtered.filter((ticket) =>
+          matchesTicketDateRange(ticket, activeFilters.startDate, activeFilters.endDate)
+        );
+      }
 
       if (activeFilters.search) {
         filtered = filtered.filter((ticket) =>
@@ -219,6 +234,16 @@ const AllTickets = () => {
       hasPreviousPage: taCurrentPage > 1
     });
 
+    const allFilteredTickets = [...filteredStudentTickets, ...filteredTaTickets];
+    setTotalTickets(allFilteredTickets.length);
+    setOpenTickets(allFilteredTickets.filter((ticket) =>
+      ["new", "ongoing"].includes(ticket.status?.toLowerCase())
+    ).length);
+    setClosedTickets(allFilteredTickets.filter((ticket) =>
+      ticket.status?.toLowerCase() === "resolved"
+    ).length);
+    setEscalatedTickets(allFilteredTickets.filter((ticket) => ticket.escalated === true).length);
+
     // Combine for overall filtered tickets (but use paginated versions for display)
     const allFiltered = [...paginatedStudentTickets, ...paginatedTaTickets];
     setFilteredTickets(allFiltered);
@@ -234,6 +259,27 @@ const AllTickets = () => {
 
   const handleClearFilters = () => {
     setActiveFilters(defaultActiveFilters);
+    setStudentCurrentPage(1);
+    setTaCurrentPage(1);
+  };
+
+  const handleDateChange = (field) => (event) => {
+    setActiveFilters((currentFilters) => ({
+      ...currentFilters,
+      [field]: event.target.value,
+    }));
+    setStudentCurrentPage(1);
+    setTaCurrentPage(1);
+  };
+
+  const handleClearDateRange = () => {
+    setActiveFilters((currentFilters) => ({
+      ...currentFilters,
+      startDate: "",
+      endDate: "",
+    }));
+    setStudentCurrentPage(1);
+    setTaCurrentPage(1);
   };
 
     const fetchUserNameForTicket = async (ticket) => {
@@ -297,6 +343,7 @@ const AllTickets = () => {
     const fetchTickets = async () => {
         try {          
             setLoading(true);
+            setLoadError("");
             
             const token = Cookies.get("token");
             
@@ -309,7 +356,15 @@ const AllTickets = () => {
                 page: '1', 
                 limit: '1000'  // Get all tickets (or a very large number)
             });
-            
+
+            if (activeFilters.startDate) {
+                studentParams.append('startDate', activeFilters.startDate);
+                taParams.append('startDate', activeFilters.startDate);
+            }
+            if (activeFilters.endDate) {
+                studentParams.append('endDate', activeFilters.endDate);
+                taParams.append('endDate', activeFilters.endDate);
+            }
 
             
             if (hideResolved) {
@@ -317,31 +372,15 @@ const AllTickets = () => {
                 taParams.append('hideResolved', 'true');
             }
 
-            // Get paginated student tickets
-            const studentTicketsResponse = await fetch(`${baseURL}/api/tickets?${studentParams}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            // The page renders combined, client-side filters (name, team, and
+            // section), so it needs every ticket the server says this user may
+            // see. Fetch every API page instead of assuming 1,000 is enough.
+            // The server applies the creation-date range before this pagination.
+            const [studentTicketsData, taTicketsDataRaw] = await Promise.all([
+                fetchAllTicketPages({ baseURL, endpoint: '/api/tickets', params: studentParams, token }),
+                fetchAllTicketPages({ baseURL, endpoint: '/api/tatickets', params: taParams, token }),
+            ]);
 
-            // Get paginated TA tickets
-            const taTicketsResponse = await fetch(`${baseURL}/api/tatickets?${taParams}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!studentTicketsResponse.ok || !taTicketsResponse.ok) {
-                throw new Error("Failed to fetch tickets");
-            }
-
-            const studentTicketsData = await studentTicketsResponse.json();
-            const taTicketsDataRaw = await taTicketsResponse.json();
-            
             const studentTicketsRaw = studentTicketsData.tickets || studentTicketsData;
             const taTicketsRaw = taTicketsDataRaw.tickets || taTicketsDataRaw;
 
@@ -389,62 +428,9 @@ const AllTickets = () => {
                 hasPreviousPage: false
             });
 
-            let totalTickets, openTickets, closedTickets, escalatedTickets;
-            
-            // Get TOTAL count (unfiltered) for the main totalTickets display
-            const grandTotalStudentParams = new URLSearchParams({ page: '1', limit: '1' }); // Minimal data
-            const grandTotalTaParams = new URLSearchParams({ page: '1', limit: '1' });
-            
-            const [grandTotalStudentResponse, grandTotalTaResponse] = await Promise.all([
-                fetch(`${baseURL}/api/tickets?${grandTotalStudentParams}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }),
-                fetch(`${baseURL}/api/tatickets?${grandTotalTaParams}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                })
-            ]);
-            
-            let grandTotalTickets = 0;
-            if (grandTotalStudentResponse.ok && grandTotalTaResponse.ok) {
-                const grandTotalStudentData = await grandTotalStudentResponse.json();
-                const grandTotalTaData = await grandTotalTaResponse.json();
-                
-                const grandTotalStudentCount = grandTotalStudentData.summary ? grandTotalStudentData.summary.totalTickets : 
-                                              (grandTotalStudentData.pagination ? grandTotalStudentData.pagination.totalItems : 0);
-                const grandTotalTaCount = grandTotalTaData.summary ? grandTotalTaData.summary.totalTickets : 
-                                         (grandTotalTaData.pagination ? grandTotalTaData.pagination.totalItems : 0);
-                
-                grandTotalTickets = grandTotalStudentCount + grandTotalTaCount;
-            }
-            
-            totalTickets = grandTotalTickets;
-            
-            if (studentTicketsData.summary && taTicketsDataRaw.summary) {
-                openTickets = studentTicketsData.summary.openTickets + taTicketsDataRaw.summary.openTickets;
-                closedTickets = studentTicketsData.summary.closedTickets + taTicketsDataRaw.summary.closedTickets;
-                escalatedTickets = studentTicketsData.summary.escalatedTickets + taTicketsDataRaw.summary.escalatedTickets;
-            } else {
-                escalatedTickets = 0;
-                openTickets = 0;
-                closedTickets = 0;
-                console.warn('Backend summary not available for filtered counts');
-            }
-            
-            setTotalTickets(totalTickets);
-            setEscalatedTickets(escalatedTickets);
-            setOpenTickets(openTickets);
-            setClosedTickets(closedTickets);
-            
         } catch (error) {
             console.error("Error fetching tickets:", error);
+            setLoadError(error.message || "Ticket requests failed.");
             setStudentTickets([]);
             setTaTickets([]);
             setTickets([]);
@@ -592,6 +578,7 @@ const AllTickets = () => {
           style={{
             display: "flex",
             flexDirection: "row",
+            flexWrap: "wrap",
             justifyContent: "space-between",
             alignItems: "center",
             gap: 20,
@@ -604,7 +591,7 @@ const AllTickets = () => {
             onChange={(e) =>
               setActiveFilters({ ...activeFilters, search: e.target.value })
             }
-            sx={{ flex: 1 }}
+            sx={{ flex: "1 1 220px", minWidth: 220 }}
           />
 
           <TextField
@@ -614,7 +601,7 @@ const AllTickets = () => {
             onChange={(e) =>
               setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })
             }
-            sx={{ flex: 1 }}
+            sx={{ flex: "1 1 220px", minWidth: 220 }}
           />
 
           <TextField
@@ -624,8 +611,34 @@ const AllTickets = () => {
             onChange={(e) =>
               setActiveFilters({ ...activeFilters, sectionSearch: e.target.value })
             }
-            sx={{ flex: 1 }}
+            sx={{ flex: "1 1 220px", minWidth: 220 }}
           />
+          <TextField
+            label="Start Date"
+            type="date"
+            value={activeFilters.startDate}
+            onChange={handleDateChange("startDate")}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ "aria-label": "Start Date" }}
+            sx={{ flex: "1 1 220px", minWidth: 220 }}
+          />
+          <TextField
+            label="End Date"
+            type="date"
+            value={activeFilters.endDate}
+            onChange={handleDateChange("endDate")}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ "aria-label": "End Date" }}
+            sx={{ flex: "1 1 220px", minWidth: 220 }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleClearDateRange}
+            disabled={!activeFilters.startDate && !activeFilters.endDate}
+            sx={{ borderColor: theme.palette.primary.main, color: theme.palette.primary.main }}
+          >
+            Clear Date Range
+          </Button>
           <Button
             variant="contained"
             onClick={handleFilterClick}
@@ -652,6 +665,11 @@ const AllTickets = () => {
             {hideResolved ? "Include Resolved Tickets" : "Hide Resolved Tickets"}
           </Button>
         </div>
+        {dateRangeError && (
+          <Typography role="alert" color="error" variant="body2">
+            {dateRangeError}
+          </Typography>
+        )}
 
         {/* Filter Dropdown */}
         <Menu
@@ -804,6 +822,11 @@ const AllTickets = () => {
         </Menu>
 
         {/* Tickets */}
+          {loadError ? (
+              <Alert severity="error" role="alert">
+                  Unable to load tickets. {loadError}
+              </Alert>
+          ) : (
           <Box
               sx={{
                   bgcolor: "background.paper",
@@ -886,10 +909,11 @@ const AllTickets = () => {
               )}
 
               {/* Display a message if no tickets match the filters */}
-              {studentTickets.length === 0 && taTickets.length === 0 && (
-                  <Typography>No tickets to display.</Typography>
+              {filteredTickets.length === 0 && (
+                  <Typography>No tickets match the current filters.</Typography>
               )}
           </Box>
+          )}
       </Box>
     </Box>
   );

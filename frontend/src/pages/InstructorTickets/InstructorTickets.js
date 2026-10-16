@@ -9,8 +9,9 @@ import TaTicketsViewController from "../../components/TaTicketsViewController";
 import Pagination from "../../components/Pagination/Pagination";
 import { fetchTicketAssignmentsByUserId, fetchTicketById, fetchTaTicketAssignmentsByUserId, fetchTaTicketById } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom";
+import { getDateRangeError, matchesTicketDateRange } from "../../utils/ticketDateRange";
 
-const baseURL = process.env.REACT_APP_API_BASE_URL;
+const baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3301";
 
 const defaultActiveFilters = {
     sort: null,
@@ -20,6 +21,8 @@ const defaultActiveFilters = {
     ticketIdSearch: "",
     teamNameSearch: "",
     sectionSearch: "",
+    startDate: "",
+    endDate: "",
 };
 
 const InstructorTickets = () => {
@@ -34,6 +37,7 @@ const InstructorTickets = () => {
     const [filteredTickets, setFilteredTickets] = useState([]);
     const [filterAnchor, setFilterAnchor] = useState(null);
     const [activeFilters, setActiveFilters] = useState(defaultActiveFilters);
+    const dateRangeError = getDateRangeError(activeFilters.startDate, activeFilters.endDate);
     const [hideResolved, setHideResolved] = useState(true);
     
     const [studentCurrentPage, setStudentCurrentPage] = useState(1);
@@ -120,6 +124,12 @@ const InstructorTickets = () => {
     const applyFilters = () => {
         let filtered = [...tickets];
 
+        if (!dateRangeError && (activeFilters.startDate || activeFilters.endDate)) {
+            filtered = filtered.filter((ticket) =>
+                matchesTicketDateRange(ticket, activeFilters.startDate, activeFilters.endDate)
+            );
+        }
+
         // Apply sort filter
         if (activeFilters.sort === "newest") {
             filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -191,6 +201,15 @@ const InstructorTickets = () => {
             );
         }
 
+        setTotalTickets(filtered.length);
+        setEscalatedTickets(filtered.filter((ticket) => ticket.escalated === true).length);
+        setOpenTickets(filtered.filter((ticket) =>
+            ["new", "ongoing"].includes(ticket.status?.toLowerCase())
+        ).length);
+        setClosedTickets(filtered.filter((ticket) =>
+            ticket.status?.toLowerCase() === "resolved"
+        ).length);
+
         const allStudentTickets = filtered.filter((ticket) => ticket.type === "student");
         const allTaTickets = filtered.filter((ticket) => ticket.type === "ta");
 
@@ -233,6 +252,21 @@ const InstructorTickets = () => {
 
     const handleClearFilters = () => {
         setActiveFilters(defaultActiveFilters);
+    };
+
+    const handleDateChange = (field) => (event) => {
+        setActiveFilters((currentFilters) => ({
+            ...currentFilters,
+            [field]: event.target.value,
+        }));
+    };
+
+    const handleClearDateRange = () => {
+        setActiveFilters((currentFilters) => ({
+            ...currentFilters,
+            startDate: "",
+            endDate: "",
+        }));
     };
 
     const handleStudentPageChange = (pageNumber) => {
@@ -501,7 +535,7 @@ const InstructorTickets = () => {
                     </Button>
                 </Box>
 
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2.5, }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 2.5, }}>
                     <TextField
                         label="Search by Name"
                         variant="outlined"
@@ -509,7 +543,7 @@ const InstructorTickets = () => {
                         onChange={(e) =>
                             setActiveFilters({ ...activeFilters, search: e.target.value })
                         }
-                        sx={{ flex: 1 }}
+                        sx={{ flex: "1 1 220px", minWidth: 220 }}
                     />
                     <TextField
                         label="Search by Team Name"
@@ -518,7 +552,7 @@ const InstructorTickets = () => {
                         onChange={(e) =>
                             setActiveFilters({ ...activeFilters, teamNameSearch: e.target.value })
                         }
-                        sx={{ flex: 1 }}
+                        sx={{ flex: "1 1 220px", minWidth: 220 }}
                     />
                     <TextField
                         label="Search by Section Number"
@@ -529,6 +563,32 @@ const InstructorTickets = () => {
                         }
                         sx={{ flex: 1 }}
                     />
+                    <TextField
+                        label="Start Date"
+                        type="date"
+                        value={activeFilters.startDate}
+                        onChange={handleDateChange("startDate")}
+                        InputLabelProps={{ shrink: true }}
+                        inputProps={{ "aria-label": "Start Date" }}
+                        sx={{ flex: "1 1 220px", minWidth: 220 }}
+                    />
+                    <TextField
+                        label="End Date"
+                        type="date"
+                        value={activeFilters.endDate}
+                        onChange={handleDateChange("endDate")}
+                        InputLabelProps={{ shrink: true }}
+                        inputProps={{ "aria-label": "End Date" }}
+                        sx={{ flex: "1 1 220px", minWidth: 220 }}
+                    />
+                    <Button
+                        variant="outlined"
+                        onClick={handleClearDateRange}
+                        disabled={!activeFilters.startDate && !activeFilters.endDate}
+                        sx={{ borderColor: "primary.main", color: "primary.main" }}
+                    >
+                        Clear Date Range
+                    </Button>
                     <Button
                         variant="contained"
                         onClick={handleFilterClick}
@@ -553,6 +613,11 @@ const InstructorTickets = () => {
                         {hideResolved ? "Include Resolved" : "Hide Resolved"}
                     </Button>
                 </Box>
+                {dateRangeError && (
+                    <Typography role="alert" color="error" variant="body2">
+                        {dateRangeError}
+                    </Typography>
+                )}
 
                 <Menu anchorEl={filterAnchor} open={Boolean(filterAnchor)} onClose={handleFilterClose}>
                     <MenuItem onClick={() => { setActiveFilters({ ...activeFilters, sort: activeFilters.sort === "newest" ? null : "newest" }); handleFilterClose(); }}>

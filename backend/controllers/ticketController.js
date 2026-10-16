@@ -6,6 +6,7 @@ const Communication = require("../models/Communication");
 const sendEmail = require('../services/emailService');
 const TicketAssignment = require("../models/TicketAssignment");
 const { Op } = require("sequelize");
+const { getCreationDateRange } = require("../utils/dateRange");
 
 const getResponseTimeForTicket = async (ticketId, createdAt) => {
   const firstCommunication = await Communication.findOne({
@@ -35,7 +36,9 @@ exports.getAllTickets = async (req, res) => {
       assigned_to,
       sort,
       hideResolved,
-      escalatedBy
+      escalatedBy,
+      startDate,
+      endDate
     } = req.query;
 
     const pageNum = parseInt(page);
@@ -66,6 +69,16 @@ exports.getAllTickets = async (req, res) => {
 
       if (hideResolved === 'true' && typeof whereClause.status === 'undefined') {
           whereClause.status = { [Op.ne]: 'resolved' };
+      }
+
+      const creationDateRange = getCreationDateRange({ startDate, endDate });
+      if (creationDateRange.error) {
+        return res.status(400).json({ error: creationDateRange.error });
+      }
+      if (creationDateRange.start || creationDateRange.endExclusive) {
+        whereClause.created_at = {};
+        if (creationDateRange.start) whereClause.created_at[Op.gte] = creationDateRange.start;
+        if (creationDateRange.endExclusive) whereClause.created_at[Op.lt] = creationDateRange.endExclusive;
       }
 
     // Build order clause for sorting
@@ -176,7 +189,9 @@ exports.getTicketsByUserId = async (req, res) => {
       priority, 
       sort,
       escalated,
-      hideResolved
+      hideResolved,
+      startDate,
+      endDate
     } = req.query;
     
     const pageNum = parseInt(page);
@@ -198,6 +213,16 @@ exports.getTicketsByUserId = async (req, res) => {
     // Handle hideResolved filtering
     if (hideResolved === 'true') {
       whereClause.status = { [Op.ne]: 'resolved' };
+    }
+
+    const creationDateRange = getCreationDateRange({ startDate, endDate });
+    if (creationDateRange.error) {
+      return res.status(400).json({ error: creationDateRange.error });
+    }
+    if (creationDateRange.start || creationDateRange.endExclusive) {
+      whereClause.created_at = {};
+      if (creationDateRange.start) whereClause.created_at[Op.gte] = creationDateRange.start;
+      if (creationDateRange.endExclusive) whereClause.created_at[Op.lt] = creationDateRange.endExclusive;
     }
 
     // Build order clause for sorting
@@ -263,7 +288,9 @@ exports.getTicketsAssignedToUser = async (req, res) => {
       status, 
       priority, 
       sort,
-      hideResolved
+      hideResolved,
+      startDate,
+      endDate
     } = req.query;
 
     const pageNum = parseInt(page);
@@ -316,6 +343,16 @@ exports.getTicketsAssignedToUser = async (req, res) => {
       whereClause.status = { [Op.ne]: 'resolved' };
     }
 
+    const creationDateRange = getCreationDateRange({ startDate, endDate });
+    if (creationDateRange.error) {
+      return res.status(400).json({ error: creationDateRange.error });
+    }
+    if (creationDateRange.start || creationDateRange.endExclusive) {
+      whereClause.created_at = {};
+      if (creationDateRange.start) whereClause.created_at[Op.gte] = creationDateRange.start;
+      if (creationDateRange.endExclusive) whereClause.created_at[Op.lt] = creationDateRange.endExclusive;
+    }
+
     let orderClause = [['created_at', 'DESC']];
     
     if (sort) {
@@ -355,7 +392,7 @@ exports.getTicketsAssignedToUser = async (req, res) => {
     let totalTickets, openTickets, closedTickets, escalatedTickets;
     
     try {
-      const summaryWhereClause = { ticket_id: assignedTicketIds };
+      const summaryWhereClause = { ...whereClause };
       
       totalTickets = await Ticket.count({ where: summaryWhereClause });
       
