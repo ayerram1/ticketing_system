@@ -28,7 +28,7 @@ module.exports = (app) => {
   // Setup CORS
   const allowedOrigins = (
     process.env.CORS_ORIGINS ||
-    "http://localhost:3001, https://helpdesk.asucapstonetools.com"
+    "http://localhost:3001, https://helpdesk.asucapstonetools.com,https://shibboleth2.asu.edu, https://weblogin.asu.edu"
   )
     .split(",")
     .map((origin) => origin.trim())
