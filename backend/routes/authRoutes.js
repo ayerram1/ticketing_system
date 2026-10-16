@@ -22,10 +22,12 @@ router.post("/saml/callback", (req, res, next) => {
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
     if (err) {
+      console.error("❌ SAML Callback Error:", err);
       return res.redirect(`${frontendUrl}/login?error=SSOFailed`);
     }
 
     if (!user) {
+      console.warn("⚠️ SAML Callback: User not found in database:", info);
       const errorType = (info && info.message) || "UserNotFound";
       return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(errorType)}`);
     }

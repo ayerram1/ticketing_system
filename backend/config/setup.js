@@ -28,7 +28,7 @@ module.exports = (app) => {
   // Setup CORS
   const allowedOrigins = (
     process.env.CORS_ORIGINS ||
-    "http://localhost:3001, https://helpdesk.asucapstonetools.com"
+    "http://localhost:3001, https://helpdesk.asucapstonetools.com,https://shibboleth2.asu.edu, https://weblogin.asu.edu"
   )
     .split(",")
     .map((origin) => origin.trim())
@@ -56,6 +56,9 @@ module.exports = (app) => {
 
   // Setup JSON parsing middleware
   app.use(require("express").json());
+
+  // Setup URL-encoded form parsing middleware (REQUIRED FOR SAML POST)
+  app.use(express.urlencoded({ extended: false }));
 
   // Setup Passport SAML middleware
   const { passport } = require("./passport-saml");
