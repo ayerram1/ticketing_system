@@ -57,9 +57,6 @@ module.exports = (app) => {
   // Setup JSON parsing middleware
   app.use(require("express").json());
 
-  // Setup JSON parsing middleware
-  app.use(require("express").json());
-  
   // Setup URL-encoded form parsing middleware (REQUIRED FOR SAML POST)
   app.use(express.urlencoded({ extended: false }));
 
