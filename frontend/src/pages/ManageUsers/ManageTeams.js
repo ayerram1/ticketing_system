@@ -30,13 +30,6 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
 import { useNavigate } from "react-router-dom";
 
-const emptySemesterFields = {
-    cohort_start_semester: "",
-    current_semester: "",
-    capstone_course: "",
-    program_type: "",
-};
-
 const ManageTeam = () => {
     // --- Data States ---
     const [teams, setTeams] = useState([]);
@@ -57,8 +50,7 @@ const ManageTeam = () => {
         instructor_user_id: "",
         sponsor_name: "",
         sponsor_email: "",
-        grader_user_id: "", // Used locally for selection
-        ...emptySemesterFields,
+        grader_user_id: "" // Used locally for selection
     });
 
     // Edit States
@@ -68,8 +60,7 @@ const ManageTeam = () => {
         instructor_user_id: "",
         sponsor_name: "",
         sponsor_email: "",
-        grader_user_id: "",
-        ...emptySemesterFields,
+        grader_user_id: ""
     });
 
     // Delete States
@@ -122,12 +113,12 @@ const ManageTeam = () => {
 
     // --- CREATE HANDLERS ---
     const handleCreateClick = () => {
-        setNewTeamData({ team_name: "", instructor_user_id: "", sponsor_name: "", sponsor_email: "", grader_user_id: "", ...emptySemesterFields });
+        setNewTeamData({ team_name: "", instructor_user_id: "", sponsor_name: "", sponsor_email: "", grader_user_id: "" });
         setIsCreateDialogOpen(true);
     };
 
     const handleCreateSubmit = async () => {
-        const { team_name, instructor_user_id, sponsor_name, sponsor_email, grader_user_id, cohort_start_semester, current_semester, capstone_course, program_type } = newTeamData;
+        const { team_name, instructor_user_id, sponsor_name, sponsor_email, grader_user_id } = newTeamData;
         if (!team_name.trim()) return;
 
         setIsProcessing(true);
@@ -139,11 +130,7 @@ const ManageTeam = () => {
             sponsor_name: sponsor_name.trim() || null,
             sponsor_email: sponsor_email.trim() || null,
             grader_name: selectedGrader ? selectedGrader.name : null,
-            grader_email: selectedGrader ? selectedGrader.email : null,
-            cohort_start_semester: cohort_start_semester.trim() || null,
-            current_semester: current_semester.trim() || null,
-            capstone_course: capstone_course || null,
-            program_type: program_type || null,
+            grader_email: selectedGrader ? selectedGrader.email : null
         };
 
         try {
@@ -154,8 +141,7 @@ const ManageTeam = () => {
             });
 
             if (!response.ok) throw new Error("Failed to create team.");
-            const result = await response.json();
-            const createdTeam = result.team || result;
+            const createdTeam = await response.json();
 
             setTeams(currentTeams => [...currentTeams, createdTeam]);
             setIsCreateDialogOpen(false);
@@ -179,17 +165,13 @@ const ManageTeam = () => {
             instructor_user_id: team.instructor_user_id || "",
             sponsor_name: team.sponsor_name || "",
             sponsor_email: team.sponsor_email || "",
-            grader_user_id: matchedGrader ? matchedGrader.user_id : "",
-            cohort_start_semester: team.cohort_start_semester || "",
-            current_semester: team.current_semester || "",
-            capstone_course: team.capstone_course || "",
-            program_type: team.program_type || "",
+            grader_user_id: matchedGrader ? matchedGrader.user_id : ""
         });
         setIsEditDialogOpen(true);
     };
 
     const handleEditSubmit = async () => {
-        const { team_name, instructor_user_id, sponsor_name, sponsor_email, grader_user_id, cohort_start_semester, current_semester, capstone_course, program_type } = editTeamData;
+        const { team_name, instructor_user_id, sponsor_name, sponsor_email, grader_user_id } = editTeamData;
         if (!team_name.trim() || !selectedTeam) return;
 
         setIsProcessing(true);
@@ -201,11 +183,7 @@ const ManageTeam = () => {
             sponsor_name: sponsor_name.trim() || null,
             sponsor_email: sponsor_email.trim() || null,
             grader_name: selectedGrader ? selectedGrader.name : null,
-            grader_email: selectedGrader ? selectedGrader.email : null,
-            cohort_start_semester: cohort_start_semester.trim() || null,
-            current_semester: current_semester.trim() || null,
-            capstone_course: capstone_course || null,
-            program_type: program_type || null,
+            grader_email: selectedGrader ? selectedGrader.email : null
         };
 
         try {
@@ -324,9 +302,6 @@ const ManageTeam = () => {
                                     <TableCell sx={{ fontWeight: "bold" }}>Instructor</TableCell>
                                     <TableCell sx={{ fontWeight: "bold" }}>Sponsor</TableCell>
                                     <TableCell sx={{ fontWeight: "bold" }}>Grader</TableCell>
-                                    <TableCell sx={{ fontWeight: "bold" }}>Cohort</TableCell>
-                                    <TableCell sx={{ fontWeight: "bold" }}>Course</TableCell>
-                                    <TableCell sx={{ fontWeight: "bold" }}>Cohort Type</TableCell>
                                     <TableCell align="right" sx={{ fontWeight: "bold" }}>Actions</TableCell>
                                 </TableRow>
                             </TableHead>
@@ -339,14 +314,6 @@ const ManageTeam = () => {
                                             <TableCell sx={{ color: theme.palette.text.secondary }}>{getInstructorName(team.instructor_user_id)}</TableCell>
                                             <TableCell sx={{ color: theme.palette.text.secondary }}>{team.sponsor_name || "N/A"}</TableCell>
                                             <TableCell sx={{ color: theme.palette.text.secondary }}>{team.grader_name || "N/A"}</TableCell>
-                                            <TableCell sx={{ color: theme.palette.text.secondary }}>
-                                                <Typography variant="body2">{team.cohort_start_semester || "N/A"}</Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Current: {team.current_semester || "N/A"}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell sx={{ color: theme.palette.text.secondary }}>{team.capstone_course || "N/A"}</TableCell>
-                                            <TableCell sx={{ color: theme.palette.text.secondary }}>{team.program_type || "N/A"}</TableCell>
                                             <TableCell align="right">
                                                 <Button
                                                     size="small"
@@ -367,7 +334,7 @@ const ManageTeam = () => {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={9} align="center" sx={{ py: 4, color: theme.palette.text.secondary }}>
+                                        <TableCell colSpan={6} align="center" sx={{ py: 4, color: theme.palette.text.secondary }}>
                                             No teams found.
                                         </TableCell>
                                     </TableRow>
@@ -405,30 +372,6 @@ const ManageTeam = () => {
                             <TextField label="Sponsor Name" fullWidth value={newTeamData.sponsor_name} onChange={(e) => setNewTeamData({ ...newTeamData, sponsor_name: e.target.value })} disabled={isProcessing} />
                             <TextField label="Sponsor Email" fullWidth value={newTeamData.sponsor_email} onChange={(e) => setNewTeamData({ ...newTeamData, sponsor_email: e.target.value })} disabled={isProcessing} />
                         </Box>
-
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <TextField label="Cohort Start Semester" fullWidth placeholder="Spring 2026" value={newTeamData.cohort_start_semester} onChange={(e) => setNewTeamData({ ...newTeamData, cohort_start_semester: e.target.value })} disabled={isProcessing} />
-                            <TextField label="Current Semester" fullWidth placeholder="Fall 2026" value={newTeamData.current_semester} onChange={(e) => setNewTeamData({ ...newTeamData, current_semester: e.target.value })} disabled={isProcessing} />
-                        </Box>
-
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <FormControl fullWidth>
-                                <InputLabel>Capstone Course</InputLabel>
-                                <Select value={newTeamData.capstone_course} label="Capstone Course" onChange={(e) => setNewTeamData({ ...newTeamData, capstone_course: e.target.value })} disabled={isProcessing}>
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    <MenuItem value="Capstone 1">Capstone 1</MenuItem>
-                                    <MenuItem value="Capstone 2">Capstone 2</MenuItem>
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth>
-                                <InputLabel>Cohort Type</InputLabel>
-                                <Select value={newTeamData.program_type} label="Cohort Type" onChange={(e) => setNewTeamData({ ...newTeamData, program_type: e.target.value })} disabled={isProcessing}>
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    <MenuItem value="In-person">In-person</MenuItem>
-                                    <MenuItem value="Online">Online</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
                     </Box>
                 </DialogContent>
                 <DialogActions>
@@ -465,30 +408,6 @@ const ManageTeam = () => {
                         <Box sx={{ display: 'flex', gap: 2 }}>
                             <TextField label="Sponsor Name" fullWidth value={editTeamData.sponsor_name} onChange={(e) => setEditTeamData({ ...editTeamData, sponsor_name: e.target.value })} disabled={isProcessing} />
                             <TextField label="Sponsor Email" fullWidth value={editTeamData.sponsor_email} onChange={(e) => setEditTeamData({ ...editTeamData, sponsor_email: e.target.value })} disabled={isProcessing} />
-                        </Box>
-
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <TextField label="Cohort Start Semester" fullWidth placeholder="Spring 2026" value={editTeamData.cohort_start_semester} onChange={(e) => setEditTeamData({ ...editTeamData, cohort_start_semester: e.target.value })} disabled={isProcessing} />
-                            <TextField label="Current Semester" fullWidth placeholder="Fall 2026" value={editTeamData.current_semester} onChange={(e) => setEditTeamData({ ...editTeamData, current_semester: e.target.value })} disabled={isProcessing} />
-                        </Box>
-
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <FormControl fullWidth>
-                                <InputLabel>Capstone Course</InputLabel>
-                                <Select value={editTeamData.capstone_course} label="Capstone Course" onChange={(e) => setEditTeamData({ ...editTeamData, capstone_course: e.target.value })} disabled={isProcessing}>
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    <MenuItem value="Capstone 1">Capstone 1</MenuItem>
-                                    <MenuItem value="Capstone 2">Capstone 2</MenuItem>
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth>
-                                <InputLabel>Cohort Type</InputLabel>
-                                <Select value={editTeamData.program_type} label="Cohort Type" onChange={(e) => setEditTeamData({ ...editTeamData, program_type: e.target.value })} disabled={isProcessing}>
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    <MenuItem value="In-person">In-person</MenuItem>
-                                    <MenuItem value="Online">Online</MenuItem>
-                                </Select>
-                            </FormControl>
                         </Box>
                     </Box>
                 </DialogContent>

@@ -41,10 +41,6 @@ const User = sequelize.define("User", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  last_login: {
-    type: DataTypes.DATE,
-    allowNull: true,
-  },
 }, {
   tableName: 'users',
   timestamps: false,

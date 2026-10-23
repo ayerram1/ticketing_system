@@ -863,9 +863,6 @@ const ManageStudents = () => {
                                         Section
                                     </TableCell>
                                     <TableCell align="center" sx={{ fontWeight: "bold", color: theme.palette.text.primary, backgroundColor: theme.palette.background.paper }}>
-                                        Last Login
-                                    </TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: "bold", color: theme.palette.text.primary, backgroundColor: theme.palette.background.paper }}>
                                         Enabled
                                     </TableCell>
                                     <TableCell align="center" sx={{ fontWeight: "bold", color: theme.palette.text.primary, backgroundColor: theme.palette.background.paper }}>
@@ -920,14 +917,7 @@ const ManageStudents = () => {
                                                 align="center"
                                                 sx={{ color: theme.palette.text.primary }}
                                             >
-                                                <Typography variant="body2">
-                                                    {student.semester || "N/A"}
-                                                </Typography>
-                                                {student.capstone_course && student.capstone_course !== "N/A" && (
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        {student.capstone_course}
-                                                    </Typography>
-                                                )}
+                                                {student.semester || "N/A"}
                                             </TableCell>
                                             <TableCell
                                                 align="center"
@@ -935,14 +925,6 @@ const ManageStudents = () => {
                                             >
                                                 {student.section || "N/A"}
                                             </TableCell>
-                                            <TableCell
-    align="center"
-    sx={{ color: theme.palette.text.primary }}
->
-    {student.last_login
-        ? new Date(student.last_login).toLocaleString()
-        : "Never"}
-</TableCell>
                                             <TableCell align="center">
                                                 <Switch
                                                     checked={isEnabled}

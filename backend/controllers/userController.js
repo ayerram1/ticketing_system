@@ -141,6 +141,7 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.user_id);
@@ -174,7 +175,7 @@ exports.getUsersByRole = async (req, res) => {
 
         let queryOptions = {
             where: { role },
-            attributes: ['user_id', 'name', 'email', 'is_enabled', 'last_login'],
+            attributes: ['user_id', 'name', 'email', 'is_enabled'],
         };
 
         if (role === 'student') {
@@ -182,19 +183,12 @@ exports.getUsersByRole = async (req, res) => {
                 {
                     model: StudentData,
                     required: false,
-                    attributes: ['team_id', 'section', 'semester'],
+                    attributes: ['section', 'semester'],
                     include: [
                         {
                             model: Team,
                             required: false,
-                            attributes: [
-                                'team_name',
-                                'sponsor_name',
-                                'cohort_start_semester',
-                                'current_semester',
-                                'capstone_course',
-                                'program_type',
-                            ],
+                            attributes: ['team_name', 'sponsor_name'],
                         }
                     ]
                 }
@@ -210,18 +204,12 @@ exports.getUsersByRole = async (req, res) => {
                 const sData = u.StudentData || u.StudentDatum || {};
                 const team = sData.Team || {};
 
-                        return {
+              return {
                   user_id: u.user_id,
                   name: u.name,
                   email: u.email,
                   is_enabled: u.is_enabled,
-                                last_login: u.last_login,
-                                team_id: sData.team_id || null,
-                                semester: team.current_semester || sData.semester || "N/A",
-                                cohort_start_semester: team.cohort_start_semester || "N/A",
-                                current_semester: team.current_semester || "N/A",
-                                capstone_course: team.capstone_course || "N/A",
-                                program_type: team.program_type || "N/A",
+                  semester: sData.semester || "N/A",
                   section: sData.section || "N/A",
                   sponsor: team.sponsor_name || "N/A",
                   team_name: team.team_name || "N/A"
