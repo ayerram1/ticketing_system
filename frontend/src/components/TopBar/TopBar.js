@@ -46,7 +46,8 @@ const TopBar = () => {
             admin: "/adminsettings",
             TA: "/tasettings",
             student: "/studentsettings",
-            grader: "/gradersettings"
+            grader: "/gradersettings",
+            developer: "/developersettings"
         };
         handleNavigation(routes[userType] || "/settings");
     };

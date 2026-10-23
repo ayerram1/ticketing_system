@@ -14,6 +14,7 @@ import MyTickets from "./pages/MyTickets/MyTickets";
 import AdminSettings from "./pages/Settings/AdminSettings";
 import StudentSettings from "./pages/Settings/StudentSettings";
 import TASettings from "./pages/Settings/TASettings";
+import DeveloperSettings from "./pages/Settings/DeveloperSettings"
 import StudentDash from "./pages/StudentDash/StudentDash";
 import TAinfo from "./pages/TAInfo/TAinfo";
 import TicketInfo from "./pages/TicketInfo/TicketInfo";
@@ -71,7 +72,7 @@ function App() {
         } 
       />
 
-      <Route
+      /*<Route
         path="/developerdash"
         element={
           <ProtectedRoute
@@ -79,20 +80,20 @@ function App() {
             authorizedRoles={["developer"]}
           />
         }
-      />
+      />*/
 
       {/*Verify that user is logged in before rendering any of these routes*/}
       <Route
         element={
           <ProtectedRoute
             element={<NavBarLayout />}
-            authorizedRoles={["admin", "student", "TA", "grader"]}
+            authorizedRoles={["admin", "student", "TA", "grader", "developer"]} //added develoepr
           />
         }
       >
           {/* --- Shared Pages--- */}
 
-          <Route element={<ProtectedRoute authorizedRoles={["admin", "student", "TA", "grader"]} />}>
+          <Route element={<ProtectedRoute authorizedRoles={["admin", "student", "TA", "grader", "developer"]} />}> //added developer
             <Route path="/allassignees" element={<AllAssignees />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/ta-info" element={<TAinfo />} />
@@ -155,6 +156,12 @@ function App() {
               <Route path="/graderdash" element={<GraderDash />} />
               <Route path="/gradertickets" element={<GraderTickets />} />
 
+          </Route>
+
+          {/* --- Developer Pages--- */}
+          <Route element={<ProtectedRoute authorizedRoles={["developer"]} />}>
+              <Route path="/developerdash" element={<DeveloperDash />} />
+              <Route path="/developersettings" element={<DeveloperSettings />} />
           </Route>
 
       </Route>
