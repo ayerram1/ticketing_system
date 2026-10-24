@@ -3,6 +3,7 @@ import React from "react";
 import { Avatar, Chip, Typography, IconButton, Stack, Box, Tooltip, Checkbox } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { generateTicketNumber } from "../constants/IssueTypes";
+import { formatTicketCreationDate } from "../utils/ticketDateRange";
 
 const statusChip = (s = "unknown") => {
   const m = {
@@ -42,17 +43,6 @@ export default function TicketRow({ ticket, onOpen, escalated, showCheckboxes, s
   const displayTeamName = teamName || team_name || "No Team";
   const displaySponsorName = sponsor_name || "No Sponsor";
 
-
-  // Format the created date to exclude time
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric', 
-      year: 'numeric'
-    });
-  };
 
   return (
     <Box
@@ -169,7 +159,7 @@ export default function TicketRow({ ticket, onOpen, escalated, showCheckboxes, s
         color="text.secondary" 
         sx={{ whiteSpace: "nowrap", minWidth: 80, textAlign: "center" }}
       >
-        {formatDate(created_at)}
+        {formatTicketCreationDate(created_at)}
       </Typography>
 
       {/* Status Column */}

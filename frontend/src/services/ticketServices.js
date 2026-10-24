@@ -2,7 +2,7 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode"; 
  
 
-const baseURL = process.env.REACT_APP_API_BASE_URL;
+const baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3301";
 
 // Helper function for fetch with token
 const apiFetch = async (url, method = "GET", body = null) => {
