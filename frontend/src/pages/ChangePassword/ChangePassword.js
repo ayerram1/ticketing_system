@@ -154,7 +154,7 @@ const ChangePassword = () => {
 
   return (
     <Stack className="signInContainer">
-      <MuiCard className="card" variant="outlined">
+      <MuiCard className="card" variant="outlined" sx={{overflowY: 'auto'}}>
         <Typography component="h1" variant="h4" sx={{ mb: 2 }}>
           Change Your Password
         </Typography>
