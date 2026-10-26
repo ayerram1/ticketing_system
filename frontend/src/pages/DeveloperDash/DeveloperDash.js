@@ -14,6 +14,7 @@ import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import "./DeveloperDash.css";
 import SideBar from "../../components/SideBar/SideBar";
+import TopBar from "../../components/TopBar/TopBar"
 
 const STATUS_OPTIONS = ["open", "triaged", "in_progress", "resolved"];
 const SEVERITY_OPTIONS = ["low", "medium", "high", "critical"];
@@ -486,6 +487,9 @@ const DeveloperDash = () => {
   return (
     <div className="developer-shell">
       <SideBar />
+    
+    <div className="developer-content">
+      <TopBar logoutOnly />
 
       <main className="developer-main">
         <h1>Developer Dashboard</h1>
@@ -578,6 +582,7 @@ const DeveloperDash = () => {
           reporterNames={reporterNames}
         />
       </main>
+    </div>
     </div>
   );
 };
