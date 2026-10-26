@@ -392,15 +392,40 @@ exports.emailNotification2 = async (req, res) => {
       return res.status(400).json({ error: "Invalid role specified" });
     }
 
+
+    //conole.log("loser");
     const user = await User.findOne({ where: { email } });
+    //const { user_id } = req.params.user_id;
+    const StudentInfo = await StudentData.findByPk(user.user_id);
+
+    const TeamInfo = await Team.findByPk(StudentInfo.team_id);
+    const TaUser = await User.findByPk(TeamInfo.instructor_user_id);
+    
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
     // console.log('User stuff: ', user.password);
 
     try {
-      const subject = "test2";
-      const emailBody = `test2`;
+      const subject = "Assigned Ta and Grader";
+      const emailBody = 
+      `
+      Hello ${user.name},
+
+      Below we have listed the ta and grader that has been assigned to your team
+      ${TeamInfo.team_name} along with their emails in order to have proper communication
+      with them and to be able to ask them anything you may need:
+      ${TaUser.name}(Instructor): ${TaUser.email} 
+      ${TeamInfo.grader_name}(Grader): ${TeamInfo.grader_email}
+
+      Note: If any of these are missing than that is because you have not been assigned a 
+      that type of person.
+
+      Best Regards,
+      ASU Capstone Help Desk Team
+      
+      `;
 
       await sendEmail(email, subject, emailBody);
       console.log("Test email sent to", email);
@@ -439,14 +464,42 @@ exports.emailNotification3 = async (req, res) => {
     }
 
     const user = await User.findOne({ where: { email } });
+
+    
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
     // console.log('User stuff: ', user.password);
 
+
+    const StudentInfo = await StudentData.findByPk(user.user_id);
+
+    const TeamInfo = await Team.findByPk(StudentInfo.team_id);
+
+    /*const Team = await StudentData.findAll(
+      {
+        where:{
+          team_id: StudentInfo.team_id
+        }
+      }
+    );*/
+
     try {
-      const subject = "test3";
-      const emailBody = `test3`;
+      const subject = "Team Assignment";
+      const emailBody = 
+      `
+      Hello ${user.name},
+
+      You have been assigned to project ${TeamInfo.team_name} with your capstone
+      sponsor being ${TeamInfo.sponsor_name}, you can contact them by reaching to
+      their email: ${TeamInfo.sponsor_email}. The TA and grader assigned to you will be
+      assigned to you later and will be told to you in a separate email. Please
+      reach out to your sponsor as soon as possible to coordinate a meeting with
+      them and your team to know what is needed to go forward
+
+      Best regards,
+      ASU Capstone Help Desk Team
+       `;
 
       await sendEmail(email, subject, emailBody);
       console.log("Test email sent to", email);
