@@ -197,6 +197,60 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
         )}
 
         {/* Grader "My Tickets" Button */}
+        {userType=="developer" &&(
+          <ListItemButton
+            className="buttonStyle"
+            selected={selectedPage === 1}
+            onClick={() => {
+              setSelectedPage(1);
+              navigate("/AdminDash");
+            }}
+          >
+            <ListItemIcon>
+              <ListIcon className="iconStyle" />
+            </ListItemIcon>
+            <ListItemText className="fontStyle" primary="Admin View" />
+          </ListItemButton>
+          
+          
+        )}
+        {userType=="developer" &&(
+          <ListItemButton
+            className="buttonStyle"
+            selected={selectedPage === 1}
+            onClick={() => {
+              setSelectedPage(1);
+              navigate("/GraderDash");
+            }}
+          >
+            <ListItemIcon>
+              <ListIcon className="iconStyle" />
+            </ListItemIcon>
+            <ListItemText className="fontStyle" primary="Grader View" />
+          </ListItemButton>
+          
+          
+        )}
+
+        {userType=="developer" &&(
+          <ListItemButton
+            className="buttonStyle"
+            selected={selectedPage === 1}
+            onClick={() => {
+              setSelectedPage(1);
+              navigate("/StudentDash");
+            }}
+          >
+            <ListItemIcon>
+              <ListIcon className="iconStyle" />
+            </ListItemIcon>
+            <ListItemText className="fontStyle" primary="Student View" />
+          </ListItemButton>
+          
+          
+        )}
+
+        
         {userType === "grader" && (
           <ListItemButton
             className="buttonStyle"
@@ -212,6 +266,8 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
             <ListItemText className="fontStyle" primary="My Tickets" />
           </ListItemButton>
         )}
+
+        {/* User type developer */}
 
         {userType === "admin" && (
           <ListItemButton
