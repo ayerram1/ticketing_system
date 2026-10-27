@@ -198,15 +198,13 @@ const IssueSubmissionForm = () => {
           <option value="" disabled>
             Select an issue
           </option>
-          <option value="sponsorIssue">Issues communicating with the Sponsor</option>
-          <option value="sponsorWorkingIssue">Issues working with the Sponsor</option>
+          <option value="sponsorIssue">Issues with Sponsor</option>
           <option value="teamIssue">Issues within the Team</option>
-          <option value="teamMemberIssue">Issues with a team mate</option>
-          <option value="gradeAppeal">Grade Appeal</option>
-          <option value="extensionRequest">Extension request</option>
-          <option value="accommodationRequest">Accommodation request</option>
-          <option value="generalQuestion">General question about the course</option>
-          <option value="FeatureRequest">Feature Request</option>
+          <option value="assignmentIssue">
+            Issues with Assignments or Grading (Including Extensions)
+          </option>
+          <option value="Bug">Bug</option>
+          <option value="Feature Request">Feature Request</option>
           <option value="Question">Question</option>
           <option value="other">Other</option>
         </select>
