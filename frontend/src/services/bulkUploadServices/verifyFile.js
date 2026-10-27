@@ -29,11 +29,7 @@ const REQUIRED_HEADERS_PROJECT = [
   "instructor", 
   "instructor_email",
   "grader",
-  "grader_email",
-  "cohort_start_semester",
-  "current_semester",
-  "capstone_course",
-  "program_type"
+  "grader_email"
 ];
 
 const SCHEMA_PROJECT = {
@@ -44,10 +40,6 @@ const SCHEMA_PROJECT = {
     instructor_email: "string",
     grader: "string",
     grader_email: "string",
-    cohort_start_semester: "string",
-    current_semester: "string",
-    capstone_course: "string",
-    program_type: "string",
 };
 
 const validateCell = (key, value, SCHEMA) => {
@@ -137,3 +129,4 @@ export const verifyFileService = (file, f_type) => {
     });
   });
 };
+

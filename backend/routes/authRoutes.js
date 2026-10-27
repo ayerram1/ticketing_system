@@ -2,7 +2,6 @@ const express = require("express");
 const passport = require("passport");
 const { samlStrategy, spKey } = require("../config/passport-saml");
 const authController = require("../controllers/authController");
-const samlController = require("../controllers/samlControllers");
 
 const router = express.Router();
 

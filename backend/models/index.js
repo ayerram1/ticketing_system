@@ -30,9 +30,6 @@ BugReport.belongsTo(User, { foreignKey: "reporter_id", as: "reporter" });
 StudentData.belongsTo(User, { foreignKey: "user_id" });
 User.hasOne(StudentData, { foreignKey: "user_id" });
 
-StudentData.belongsTo(Team, { foreignKey: "team_id" });
-Team.hasMany(StudentData, { foreignKey: "team_id" });
-
 Team.hasMany(TeamSponsorHistory, { foreignKey: "team_id" });
 TeamSponsorHistory.belongsTo(Team, { foreignKey: "team_id" });
 TeamSponsorHistory.belongsTo(User, { foreignKey: "changed_by", as: "changedBy" });
