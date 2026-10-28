@@ -254,15 +254,11 @@ const TaEditTicket = ({ onClose}) => {
                             label="Issue Type"
                         >
                             <MenuItem value="">Select an issue</MenuItem>
-                            <MenuItem value="sponsorIssue">Issues communicating with the Sponsor</MenuItem>
-                            <MenuItem value="sponsorWorkingIssue">Issues working with the Sponsor</MenuItem>
+                            <MenuItem value="sponsorIssue">Issues with Sponsor</MenuItem>
                             <MenuItem value="teamIssue">Issues within the Team</MenuItem>
-                            <MenuItem value="teamMemberIssue">Issues with a team mate</MenuItem>
-                            <MenuItem value="gradeAppeal">Grade Appeal</MenuItem>
-                            <MenuItem value="extensionRequest">Extension request</MenuItem>
-                            <MenuItem value="accommodationRequest">Accommodation request</MenuItem>
-                            <MenuItem value="generalQuestion">General question about the course</MenuItem>
-                            <MenuItem value="FeatureRequest">Feature Request</MenuItem>
+                            <MenuItem value="assignmentIssue">Issues with Assignments</MenuItem>
+                            <MenuItem value="Bug">Bug</MenuItem>
+                            <MenuItem value="Feature Request">Feature Request</MenuItem>
                             <MenuItem value="Question">Question</MenuItem>
                             <MenuItem value="other">Other</MenuItem>
                         </Select>
