@@ -4,6 +4,14 @@
   background: #c6c6c9;
 }
 
+.developer-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+}
+
 /* Your shared SideBar Drawer is 240px wide */
 .developer-main {
   flex: 1;
