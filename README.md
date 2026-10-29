@@ -15,7 +15,7 @@ docker compose up --build
 This builds and starts:
 - **PostgreSQL Database** on `localhost:5432`
 - **Express Backend** on `localhost:3301`
-- **React Frontend** on `localhost:3001`
+- **React Frontend** on `http://localhost:3001`
 
 ### 2. Stop Containers
 ```bash
