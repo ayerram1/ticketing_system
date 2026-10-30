@@ -1,17 +1,14 @@
 FROM node:20-alpine
 
-# Set working directory
-WORKDIR /app
-
-# Install dependencies first for better layer caching
+# Install dependencies in the root /node_modules directory
+WORKDIR /
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy application source code (excludes ignored files per .dockerignore)
+WORKDIR /app
 COPY . .
 
-# Ensure empty certs directory exists without bundling any secret cert files
-RUN mkdir -p /app/certs
+ENV PATH="/node_modules/.bin:${PATH}"
 
 # Expose backend port
 EXPOSE 3301

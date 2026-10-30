@@ -34,7 +34,6 @@ services:
       FRONTEND_URL: http://localhost:3001
     volumes:
       - ./backend:/app
-      - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
@@ -52,8 +51,6 @@ services:
       REACT_APP_API_BASE_URL: http://localhost:3301
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-      - /app/build
     depends_on:
       - backend
     command: npx webpack-dev-server --mode development --hot --port 3001 --host 0.0.0.0 --allowed-hosts all

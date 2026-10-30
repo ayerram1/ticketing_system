@@ -1,14 +1,14 @@
 FROM node:20-alpine
 
-# Set working directory
-WORKDIR /app
-
-# Install dependencies first for better layer caching
+# Install dependencies in the root /node_modules directory
+WORKDIR /
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy frontend source code
+WORKDIR /app
 COPY . .
+
+ENV PATH="/node_modules/.bin:${PATH}"
 
 # Expose frontend development server port
 EXPOSE 3001

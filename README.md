@@ -16,6 +16,7 @@ This builds and starts:
 - **PostgreSQL Database** on `localhost:5432`
 - **Express Backend** on `localhost:3301`
 - **React Frontend** on `http://localhost:3001`
+There will be some overhead on first time set-up.
 
 ### 2. Stop Containers
 ```bash
