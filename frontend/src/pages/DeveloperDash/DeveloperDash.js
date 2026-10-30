@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Chip,
+  Menu,
   MenuItem,
   Modal,
   TextField,
@@ -156,7 +157,7 @@ const BugReportCard = ({
             }}
           >
             &times;
-          </Button>
+          </Button> 
 
           <Box
             sx={{
@@ -300,7 +301,14 @@ const BugReportCard = ({
   );
 };
 
+const defaultActiveFilters = {
+  status: null,
+  severity: null,
+  sort: "newest",
+};
+
 const DeveloperDash = () => {
+  const [allBugReports, setAllBugReports] = useState([]);
   const [bugReports, setBugReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -311,6 +319,9 @@ const DeveloperDash = () => {
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [activeFilters, setActiveFilters] = useState(defaultActiveFilters);
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  
 
   useEffect(() => {
     const fetchBugReports = async () => {
@@ -341,6 +352,7 @@ const DeveloperDash = () => {
 
         const payload = await response.json();
         const reports = Array.isArray(payload?.data) ? payload.data : [];
+        setAllBugReports(reports);
         setBugReports(reports);
 
         const reporterIds = [
@@ -468,7 +480,7 @@ const DeveloperDash = () => {
       }
 
       const updatedReport = payload.data;
-      setBugReports((currentReports) =>
+      setAllBugReports((currentReports) =>
         currentReports.map((report) =>
           report.id === updatedReport.id ? updatedReport : report
         )
@@ -482,6 +494,46 @@ const DeveloperDash = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleClearFilters = () => {
+    setActiveFilters(defaultActiveFilters);
+  }
+
+  useEffect(() => {
+    applyFilters();
+  }, [allBugReports, activeFilters.status, activeFilters.severity, activeFilters.sort]);
+
+  const applyFilters = () => {
+    let filteredBugReports = [...allBugReports];
+    if (activeFilters.status) {
+      filteredBugReports = filteredBugReports.filter((report) => report.status?.toLowerCase() === activeFilters.status.toLowerCase());
+    }
+    
+    if (activeFilters.severity) {
+    filteredBugReports = filteredBugReports.filter((report) => report.severity?.toLowerCase() === activeFilters.severity.toLowerCase());
+    }
+    if (activeFilters.sort === "newest") {
+      filteredBugReports.sort((a, b) =>
+        new Date(b.createdAt || b.created_at) -
+        new Date(a.createdAt || a.created_at)
+      );
+    } else if (activeFilters.sort === "oldest") {
+      filteredBugReports.sort( (a, b) =>
+        new Date(a.createdAt || a.created_at) -
+        new Date(b.createdAt || b.created_at)
+      );
+    }
+    
+  return setBugReports(filteredBugReports);
+};
+
+  const handleFilterClick = (event) => {
+    setFilterAnchor(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchor(null);
   };
 
   return (
@@ -498,11 +550,171 @@ const DeveloperDash = () => {
           <h2>Bug Reports</h2>
           <p>Current Bugs/Issues with the ticketing system.</p>
 
+        
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
+
+          <Button
+          variant="contained"
+          onClick={handleFilterClick}>
+            Add Filters
+          </Button>
+
+          <Menu
+            anchorEl={filterAnchor}
+            open={Boolean(filterAnchor)}
+            onClose={handleFilterClose}
+          >
+            {/* Newest */}
+            <MenuItem
+              selected={activeFilters.sort === "newest"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, sort: "newest",}));
+                handleFilterClose();
+              }}
+            >
+              <span style={{ marginRight: 8 }}>
+                {activeFilters.sort === "newest" ? "✔" : ""}
+              </span>
+              Newest
+            </MenuItem>
+
+            {/* Oldest */}
+            <MenuItem
+              selected={activeFilters.sort === "oldest"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, sort: "oldest",}));
+                handleFilterClose();
+              }}
+            >
+              <span style={{ marginRight: 8 }}>
+                {activeFilters.sort === "oldest" ? "✔" : ""}
+              </span>
+              Oldest
+              </MenuItem>
+
+            {/* Status: Open*/}
+            <MenuItem
+              selected={activeFilters.status === "open"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, status: prev.status === "open" ? null : "open",}));
+                handleFilterClose();
+              }}
+            >
+              <span style={{ marginRight: 8 }}>
+                {activeFilters.status === "open" ? "✔" : ""}
+              </span>
+            Status: Open
+            </MenuItem>
+
+            {/* Status: Triaged*/}
+            <MenuItem
+              selected={activeFilters.status === "triaged"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, status: prev.status === "triaged" ? null : "triaged",}));
+                handleFilterClose();
+              }}
+            >
+              <span style={{ marginRight: 8 }}>
+                {activeFilters.status === "triaged" ? "✔" : ""}
+              </span>
+            Status: Triaged
+            </MenuItem>
+
+            {/* Status: in-progress*/}
+            <MenuItem
+              selected={activeFilters.status === "in_progress"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, status: prev.status === "in_progress" ? null : "in_progress",}));
+                handleFilterClose();
+              }}
+            >
+              <span style={{ marginRight: 8 }}>
+                {activeFilters.status === "in_progress" ? "✔" : ""}
+              </span>
+            Status: In Progress
+            </MenuItem>
+
+            {/* Status: resolved*/}
+            <MenuItem
+              selected={activeFilters.status === "resolved"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, status: prev.status === "resolved" ? null : "resolved",}));
+                handleFilterClose();
+              }}
+            >
+              <span style={{ marginRight: 8 }}>
+                {activeFilters.status === "resolved" ? "✔" : ""}
+              </span>
+            Status: Resolved
+            </MenuItem>
+
+            {/* Severity Low */}
+            <MenuItem
+              selected={activeFilters.severity === "low"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, severity: prev.severity === "low" ? null : "low",}));
+                handleFilterClose();
+              }}
+            >
+              <span style={{ marginRight: 8 }}>
+                {activeFilters.severity === "low" ? "✔" : ""}
+              </span>
+            Severity: Low
+            </MenuItem>
+            
+            {/* Severity Medium */}
+            <MenuItem
+              selected={activeFilters.severity === "medium"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, severity: prev.severity === "medium" ? null : "medium",}));
+                handleFilterClose();
+              }}
+            >
+              <span style={{ marginRight: 8 }}>
+                {activeFilters.severity === "medium" ? "✔" : ""}
+              </span>
+              Severity: Medium
+              </MenuItem>
+
+              {/* Severity High */}
+              <MenuItem
+                selected={activeFilters.severity === "high"}
+                onClick={() => {
+                  setActiveFilters((prev) => ({...prev, severity: prev.severity === "high" ? null : "high",}));
+                  handleFilterClose();
+                }}
+              >
+                <span style={{ marginRight: 8 }}>
+                  {activeFilters.severity === "high" ? "✔" : ""}
+                </span>
+              Severity: High
+              </MenuItem>
+
+              {/* Severity Critical */}
+              <MenuItem
+              selected={activeFilters.severity === "critical"}
+              onClick={() => {
+                setActiveFilters((prev) => ({...prev, severity: prev.severity === "critical" ? null : "critical",}));
+                handleFilterClose();
+              }}
+              >
+                <span style={{ marginRight: 8 }}>
+                  {activeFilters.severity === "critical" ? "✔" : ""}
+                </span>
+              Severity: Critical
+              </MenuItem>
+            </Menu>
+            <Button
+              variant="outlined"
+              onClick={handleClearFilters}
+              sx={{ ml: 2 }}
+            >
+                Clear Filters
+            </Button>
 
           <table>
             <thead>

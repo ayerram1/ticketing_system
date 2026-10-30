@@ -121,7 +121,7 @@ function App() {
           </Route>
 
           {/* --- Admin Pages--- */}
-          <Route element={<ProtectedRoute authorizedRoles={["admin"]} />}>
+          <Route element={<ProtectedRoute authorizedRoles={["admin", "developer"]} />}>
               <Route path="/admindash" element={<AdminDash />} />
               <Route path="/adminsettings" element={<AdminSettings />} />
               <Route path="/managestudents" element={<ManageStudents />} />
@@ -137,13 +137,13 @@ function App() {
           </Route>
 
           {/* --- Student Pages--- */}
-          <Route element={<ProtectedRoute authorizedRoles={["student"]} />}>
+          <Route element={<ProtectedRoute authorizedRoles={["student", "developer"]} />}>
               <Route path="/studentdash" element={<StudentDash />} />
               <Route path="/studentsettings" element={<StudentSettings />} />
           </Route>
 
           {/* --- TAs Pages--- */}
-          <Route element={<ProtectedRoute authorizedRoles={["TA"]} />}>
+          <Route element={<ProtectedRoute authorizedRoles={["TA", "developer"]} />}>
               <Route path="/instructordash" element={<InstructorDash />} />
               <Route path="/tasettings" element={<TASettings />} />
               <Route path="/instructortickets" element={<InstructorTickets />} />
@@ -153,7 +153,7 @@ function App() {
           </Route>
 
           {/* --- Grader Pages--- */}
-          <Route element={<ProtectedRoute authorizedRoles={["grader"]} />}>
+          <Route element={<ProtectedRoute authorizedRoles={["grader", "developer"]} />}>
               <Route path="/gradersettings" element={<GraderSettings />} />
               <Route path="/graderdash" element={<GraderDash />} />
               <Route path="/gradertickets" element={<GraderTickets />} />
@@ -164,6 +164,7 @@ function App() {
           <Route element={<ProtectedRoute authorizedRoles={["developer"]} />}>
               <Route path="/developerdash" element={<DeveloperDash />} />
               <Route path="/developersettings" element={<DeveloperSettings />} />
+              <Route path="/admindash" element={<AdminDash />} />
           </Route>
 
       </Route>
