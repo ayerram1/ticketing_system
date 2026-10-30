@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ticketing_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-myuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mypassword}
+      POSTGRES_DB: ${POSTGRES_DB:-mydatabase}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-myuser} -d ${POSTGRES_DB:-mydatabase}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ticketing_backend
+    restart: unless-stopped
+    ports:
+      - "3301:3301"
+    environment:
+      NODE_ENV: development
+      PORT: 3301
+      DATABASE_URL: postgresql://${POSTGRES_USER:-myuser}:${POSTGRES_PASSWORD:-mypassword}@db:5432/${POSTGRES_DB:-mydatabase}
+      JWT_SECRET: ${JWT_SECRET:-development_secret_key_change_in_production}
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      FRONTEND_URL: http://localhost:3001
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ticketing_frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      REACT_APP_API_BASE_URL: http://localhost:3301
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    command: npx webpack-dev-server --mode development --hot --port 3001 --host 0.0.0.0 --allowed-hosts all
+
+volumes:
+  postgres_data:
