@@ -17,7 +17,10 @@ const ReplyBox = ({reply, author, time, profilePicture}) => {
                         {time}
                     </Typography>
                 </Stack>
-                <Typography className='replyText'>
+                <Typography className='replyText' sx={{
+                    maxWidth: '900px',
+                    wordBreak: 'break-word'
+                }}>
                     {reply}
                 </Typography>
             </Stack>
