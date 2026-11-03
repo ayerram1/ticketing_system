@@ -9,10 +9,16 @@ import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
 import TicketsViewController from "../../components/TicketsViewController";
 import Pagination from "../../components/Pagination/Pagination";
+import NewChart from "./NewChart";
+
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
+
+
 const AdminDash = () => {
+
+  
   const theme = useTheme();
   const [tickets, setTickets] = useState([]);
   const [escalatedTickets, setEscalatedTickets] = useState([]);
@@ -368,6 +374,10 @@ const AdminDash = () => {
     setEscalatedItemsPerPage(newItemsPerPage);
     setEscalatedCurrentPage(1); 
   };
+  
+
+  
+
 
   return (
     <Box
@@ -628,7 +638,20 @@ const AdminDash = () => {
           ))}
         </div>
       </Box>
+      <Box
+      sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
+          flex: 1,
+        }}>
+        <NewChart/>
+      </Box>
     </Box>
+    
   );
 };
 
