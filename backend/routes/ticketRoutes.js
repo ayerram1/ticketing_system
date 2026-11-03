@@ -35,6 +35,7 @@ router.get(
 router.get(
   "/info/:ticket_id",
   authMiddleware.verifyToken,
+  authMiddleware.isStudentOrTAOrAdmin,
   ticketController.getAllTicketDataById
 );
 router.post(
@@ -45,7 +46,7 @@ router.post(
 router.put(
   "/:ticket_id",
   authMiddleware.verifyToken,
-  authMiddleware.isStudentOrTAOrAdmin,
+  authMiddleware.isStaffOrStudent,
   authMiddleware.isAssignedToTicket,
   ticketController.updateTicket
 );

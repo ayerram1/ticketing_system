@@ -203,13 +203,31 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
             selected={selectedPage === 1}
             onClick={() => {
               setSelectedPage(1);
-              navigate("/AdminDash");
+              navigate("/admindash");
             }}
           >
             <ListItemIcon>
               <ListIcon className="iconStyle" />
             </ListItemIcon>
             <ListItemText className="fontStyle" primary="Admin View" />
+          </ListItemButton>
+          
+          
+        )}
+
+        {userType=="developer" &&(
+          <ListItemButton
+            className="buttonStyle"
+            selected={selectedPage === 1}
+            onClick={() => {
+              setSelectedPage(1);
+              navigate("/instructordash");
+            }}
+          >
+            <ListItemIcon>
+              <ListIcon className="iconStyle" />
+            </ListItemIcon>
+            <ListItemText className="fontStyle" primary="Instructor View" />
           </ListItemButton>
           
           
@@ -249,6 +267,8 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
           
           
         )}
+
+        
 
         
         {userType === "grader" && (

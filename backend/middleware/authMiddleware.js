@@ -60,8 +60,16 @@ isAdmin: (req, res, next) => {
     }
   },
 
+  isStudentOrTAOrAdminOrGrader: (req, res, next) => {
+    if (req.user && (req.user.role === "student" || req.user.role === "TA" || req.user.role === "admin" || req.user.role === "grader")) {
+      next();
+    } else {
+      res.status(403).json({ error: "Forbidden" });
+    }
+  },
+
     isStaff: (req, res, next) => {
-        const staffRoles = ["admin", "TA", "grader"];
+        const staffRoles = ["admin", "TA", "grader","developer"];
         if (req.user && staffRoles.includes(req.user.role)) {
             next(); // Access granted
         } else {
@@ -76,7 +84,7 @@ isAdmin: (req, res, next) => {
         }
     },
     isStaffOrStudent: (req, res, next) => {
-        const staffRoles = ["admin", "TA", "grader", "student"];
+        const staffRoles = ["admin", "TA", "grader", "student", "developer"];
         if (req.user && staffRoles.includes(req.user.role)) {
             next(); // Access granted
         } else {
