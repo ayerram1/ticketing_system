@@ -111,8 +111,7 @@ function App() {
           </Route>
 
           {/* --- Admin Pages--- */}
-          <Route element={<ProtectedRoute authorizedRoles={["admin", "developer"]} />}>
-              <Route path="/admindash" element={<AdminDash />} />
+          <Route element={<ProtectedRoute authorizedRoles={["admin"]} />}>
               <Route path="/adminsettings" element={<AdminSettings />} />
               <Route path="/managestudents" element={<ManageStudents />} />
               <Route path="/manageadmins" element={<ManageAdmins />} />
@@ -126,6 +125,7 @@ function App() {
               <Route path="/email-logs" element={<EmailLogs />} />
           </Route>
 
+          
           {/* --- Student Pages--- */}
           <Route element={<ProtectedRoute authorizedRoles={["student", "developer"]} />}>
               <Route path="/studentdash" element={<StudentDash />} />
@@ -134,7 +134,6 @@ function App() {
 
           {/* --- TAs Pages--- */}
           <Route element={<ProtectedRoute authorizedRoles={["TA", "developer"]} />}>
-              <Route path="/instructordash" element={<InstructorDash />} />
               <Route path="/tasettings" element={<TASettings />} />
               <Route path="/instructortickets" element={<InstructorTickets />} />
               <Route path="/TaRequestTickets" element={<TaRequestTickets />} />
@@ -145,7 +144,6 @@ function App() {
           {/* --- Grader Pages--- */}
           <Route element={<ProtectedRoute authorizedRoles={["grader", "developer"]} />}>
               <Route path="/gradersettings" element={<GraderSettings />} />
-              <Route path="/graderdash" element={<GraderDash />} />
               <Route path="/gradertickets" element={<GraderTickets />} />
 
           </Route>
@@ -154,7 +152,20 @@ function App() {
           <Route element={<ProtectedRoute authorizedRoles={["developer"]} />}>
               <Route path="/developerdash" element={<DeveloperDash />} />
               <Route path="/developersettings" element={<DeveloperSettings />} />
+          </Route>
+
+          {/* --Developer and other shared dashes */}
+          <Route element={<ProtectedRoute authorizedRoles={["developer", "admin"]} />}>
               <Route path="/admindash" element={<AdminDash />} />
+          </Route>
+          <Route element={<ProtectedRoute authorizedRoles={["developer", "TA"]} />}>
+              <Route path="/instructordash" element={<InstructorDash />} />
+          </Route>
+          <Route element={<ProtectedRoute authorizedRoles={["developer", "grader"]} />}>
+              <Route path="/graderdash" element={<GraderDash />} />
+          </Route>
+          <Route element={<ProtectedRoute authorizedRoles={["developer", "student"]} />}>
+              <Route path="/studentdash" element={<StudentDash />} />
           </Route>
 
       </Route>
