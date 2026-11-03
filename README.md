@@ -16,14 +16,19 @@ This builds and starts:
 - **PostgreSQL Database** on `localhost:5432`
 - **Express Backend** on `localhost:3301`
 - **React Frontend** on `http://localhost:3001`
-There will be some overhead on first time set-up.
 
+Initialize  the database on first-time set-up:
+```bash
+docker compose exec backend npm run seed
+```
 ### 2. Stop Containers
 ```bash
 docker compose down
 ```
-*(Database data is preserved in the `postgres_data` volume across restarts).*
-
+Database data is preserved in the `postgres_data` volume across restarts. You can delete all preserved data by using:*
+```bash
+docker compose down -v
+```
 ---
 
 ## Option 2: Manual Local Setup (Without Docker)
