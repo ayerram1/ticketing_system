@@ -13,6 +13,13 @@ import {
 import BugReportIcon from "@mui/icons-material/BugReport";
 import { useLocation } from "react-router-dom";
 
+const getBrowserName = () => {
+        const ua = navigator.userAgent;
+        const os = /Windows/.test(ua) ? "Windows" : /Mac OS X/.test(ua) ? "macOS" : /Android/.test(ua) ? "Android" : /iPhone|iPad/.test(ua) ? "iOS" : /Linux/.test(ua) ? "Linux" : "Unknown OS";
+        const browser = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Unknown browser";
+        return `${browser} on ${os}`;
+      };
+
 export default function BugReportPage() {
   const location = useLocation();
   const [form, setForm] = useState({
@@ -35,13 +42,14 @@ export default function BugReportPage() {
       const token = Cookies.get("token");
       if (!token) throw new Error("No token found. Please log in again.");
 
+
       const payload = {
         subject: form.subject,
         description: form.description,
         severity: form.priority.toLowerCase(),
         context: {
           page: location.state?.from || "",
-          browser: navigator.userAgent.slice(0, 300),
+          browser: getBrowserName(),
           viewport: `${window.innerWidth}x${window.innerHeight}`,
         },
       };

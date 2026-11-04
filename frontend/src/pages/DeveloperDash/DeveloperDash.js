@@ -14,8 +14,6 @@ import {
 import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import "./DeveloperDash.css";
-import SideBar from "../../components/SideBar/SideBar";
-import TopBar from "../../components/TopBar/TopBar"
 
 const STATUS_OPTIONS = ["open", "triaged", "in_progress", "resolved", "closed"];
 const SEVERITY_OPTIONS = ["low", "medium", "high", "critical"];
@@ -398,31 +396,27 @@ const DeveloperDash = () => {
   const [noteError, setNoteError] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [severityFilter, setSeverityFilter] = useState("all");
 
   const summary = useMemo(() => {
     const isActive = (r) => !["resolved", "closed"].includes(r.status);
     return {
-      total: bugReports.length,
-      open: bugReports.filter((r) => r.status === "open").length,
-      inProgress: bugReports.filter((r) => ["triaged", "in_progress"].includes(r.status)).length,
-      critical: bugReports.filter((r) => r.severity === "critical" && isActive(r)).length,
-      done: bugReports.filter((r) => ["resolved", "closed"].includes(r.status)).length,
+      total: allBugReports.length,
+      open: allBugReports.filter((r) => r.status === "open").length,
+      inProgress: allBugReports.filter((r) => ["triaged", "in_progress"].includes(r.status)).length,
+      critical: allBugReports.filter((r) => r.severity === "critical" && isActive(r)).length,
+      done: allBugReports.filter((r) => ["resolved", "closed"].includes(r.status)).length,
     };
-  }, [bugReports]);
+  }, [allBugReports]);
 
   const filteredReports = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    return bugReports.filter((r) => {
-      if (statusFilter !== "all" && r.status !== statusFilter) return false;
-      if (severityFilter !== "all" && r.severity !== severityFilter) return false;
-      if (!term) return true;
-      return [r.subject, r.description, r.reporter?.name]
+    if (!term) return bugReports;
+    return bugReports.filter((r) =>
+      [r.subject, r.description, r.reporter?.name]
         .filter(Boolean)
-        .some((v) => v.toLowerCase().includes(term));
-    });
-  }, [bugReports, searchTerm, statusFilter, severityFilter]);
+        .some((v) => v.toLowerCase().includes(term))
+    );
+  }, [bugReports, searchTerm]);
 
   const authHeaders = () => ({
     "Content-Type": "application/json",
@@ -695,9 +689,7 @@ const DeveloperDash = () => {
 
   return (
     <div className="developer-shell">
-      <SideBar />
     <div className="developer-content">
-      <TopBar logoutOnly />
 
       <main className="developer-main">
         <h1>Developer Dashboard</h1>
@@ -736,57 +728,11 @@ const DeveloperDash = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{ minWidth: 280 }}
             />
-            <TextField select size="small" label="Status" value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)} sx={{ minWidth: 150 }}>
-              <MenuItem value="all">All</MenuItem>
-              {STATUS_OPTIONS.map((o) => (
-                <MenuItem key={o} value={o}>{formatEnumLabel(o)}</MenuItem>
-              ))}
-            </TextField>
-            <TextField select size="small" label="Severity" value={severityFilter}
-              onChange={(e) => setSeverityFilter(e.target.value)} sx={{ minWidth: 150 }}>
-              <MenuItem value="all">All</MenuItem>
-              {SEVERITY_OPTIONS.map((o) => (
-                <MenuItem key={o} value={o}>{formatEnumLabel(o)}</MenuItem>
-              ))}
-            </TextField>
-            <Button size="small" onClick={() => { setSearchTerm(""); setStatusFilter("all"); setSeverityFilter("all"); }}>
-              Clear
-            </Button>
             <Button size="small" variant="outlined" href="/email-logs">
               Email Logs
             </Button>
           </div>
 
-          <div className="developer-toolbar">
-            <TextField
-              size="small"
-              label="Search subject, description, reporter"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ minWidth: 280 }}
-            />
-            <TextField select size="small" label="Status" value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)} sx={{ minWidth: 150 }}>
-              <MenuItem value="all">All</MenuItem>
-              {STATUS_OPTIONS.map((o) => (
-                <MenuItem key={o} value={o}>{formatEnumLabel(o)}</MenuItem>
-              ))}
-            </TextField>
-            <TextField select size="small" label="Severity" value={severityFilter}
-              onChange={(e) => setSeverityFilter(e.target.value)} sx={{ minWidth: 150 }}>
-              <MenuItem value="all">All</MenuItem>
-              {SEVERITY_OPTIONS.map((o) => (
-                <MenuItem key={o} value={o}>{formatEnumLabel(o)}</MenuItem>
-              ))}
-            </TextField>
-            <Button size="small" onClick={() => { setSearchTerm(""); setStatusFilter("all"); setSeverityFilter("all"); }}>
-              Clear
-            </Button>
-            <Button size="small" variant="outlined" href="/email-logs">
-              Email Logs
-            </Button>
-          </div>
 
           <Button
           variant="contained"

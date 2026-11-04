@@ -74,16 +74,6 @@ function App() {
         } 
       />
 
-      /*<Route
-        path="/developerdash"
-        element={
-          <ProtectedRoute
-            element={<DeveloperDash />}
-            authorizedRoles={["developer"]}
-          />
-        }
-      />*/
-
       {/*Verify that user is logged in before rendering any of these routes*/}
       <Route
         element={

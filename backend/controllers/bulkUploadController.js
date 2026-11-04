@@ -385,7 +385,7 @@ exports.importBulk = async (req, res) => {
         const teamName = normalizeTeamName(row.project);
         if (!teamName) throw new Error("Project/team name is required");
 
-        const instructorEmail = trimValue(row.instructor_email);
+        const instructorEmail = normalizeEmail(row.instructor_email);
         const instructorUser = await User.findOne({
           where: { email: instructorEmail },
           transaction,

@@ -1,11 +1,11 @@
 const express = require('express');
 const sendEmail = require('../services/emailService');
-const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const { verifyToken, isAdmin, isDeveloperOrAdmin } = require('../middleware/authMiddleware');
 const { getLogs } = require('../controllers/emailLogController');
 
 const router = express.Router();
 
-router.get('/logs', verifyToken, isAdmin, getLogs);
+router.get('/logs', verifyToken, isDeveloperOrAdmin, getLogs);
 
 router.post('/send', async (req, res) => {
   const { to, subject, text } = req.body;

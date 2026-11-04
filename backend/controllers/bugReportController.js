@@ -134,7 +134,7 @@ exports.list = async (req, res) => {
   try {
     const where = {};
 
-    if (!isDevOrAdmin(req)) {
+    if (!isDevOrAdmin(req) || req.query.mine === "true") {
       where.reporter_id = req.user?.id ?? -1;
     }
 

@@ -27,6 +27,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination/Pagination";
 
@@ -59,6 +60,7 @@ const EmailLogs = () => {
 
   const token = Cookies.get("token");
   const navigate = useNavigate();
+  const userRole = token ? jwtDecode(token).role : null;
   const theme = useTheme();
 
   const fetchLogs = useCallback(async () => {
@@ -152,7 +154,7 @@ const EmailLogs = () => {
       {/* Header */}
       <Box sx={{ display: "flex", alignItems: "center", marginBottom: 3 }}>
         <IconButton
-          onClick={() => navigate("/adminsettings")}
+          onClick={() => navigate(userRole === "developer" ? "/developerdash" : "/adminsettings")}
           sx={{ marginRight: 1, color: theme.palette.text.primary }}
         >
           <ArrowBackIosNewIcon />
