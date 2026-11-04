@@ -36,8 +36,8 @@ router.delete(
 // Added This
 router.get(
   "/ticketCountsByTA",
-  //authMiddleware.verifyToken,
-  //authMiddleware.isAdmin,
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
   ticketAssignmentController.getTicketCountsByTA
 );
 // Added This
