@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Avatar,
@@ -14,10 +14,8 @@ import {
 import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import "./DeveloperDash.css";
-import SideBar from "../../components/SideBar/SideBar";
-import TopBar from "../../components/TopBar/TopBar"
 
-const STATUS_OPTIONS = ["open", "triaged", "in_progress", "resolved"];
+const STATUS_OPTIONS = ["open", "triaged", "in_progress", "resolved", "closed"];
 const SEVERITY_OPTIONS = ["low", "medium", "high", "critical"];
 
 const statusChipStyles = {
@@ -100,6 +98,13 @@ const BugReportCard = ({
   onSave,
   formatCreatedAt,
   reporterNames,
+  notes,
+  notesLoading,
+  noteDraft,
+  noteError,
+  isAddingNote,
+  onNoteDraftChange,
+  onAddNote,
 }) => {
   const theme = useTheme();
 
@@ -278,6 +283,26 @@ const BugReportCard = ({
               </Box>
             </Box>
 
+                        {report.reporter_context && (
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  Reporter Context
+                </Typography>
+                <Typography variant="body2">
+                  Role: {formatDisplayValue(report.reporter_context.role)}
+                </Typography>
+                <Typography variant="body2">
+                  Page: {report.reporter_context.page || "-"}
+                </Typography>
+                <Typography variant="body2">
+                  Viewport: {report.reporter_context.viewport || "-"}
+                </Typography>
+                <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+                  Browser: {report.reporter_context.browser || "-"}
+                </Typography>
+              </Box>
+            )}
+
             <Button
               variant="contained"
               disableElevation
@@ -294,6 +319,49 @@ const BugReportCard = ({
             >
               {isSaving ? "Saving..." : "Save Changes"}
             </Button>
+
+                        <Box>
+              <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.75 }}>
+                Internal Notes (developers only)
+              </Typography>
+              {noteError && <Alert severity="error" sx={{ mb: 1 }}>{noteError}</Alert>}
+              {notesLoading && <Typography variant="body2">Loading notes...</Typography>}
+              {!notesLoading && notes.length === 0 && (
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                  No notes yet.
+                </Typography>
+              )}
+              {notes.map((n) => (
+                <Box key={n.id} sx={{ p: 1.5, mb: 1, borderRadius: 1.5, backgroundColor: "#f6f6f6", border: "1px solid #e0e0e0" }}>
+                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                    {n.author?.name || "Unknown"} - {formatCreatedAt(n.createdAt)}
+                  </Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                    {n.note}
+                  </Typography>
+                </Box>
+              ))}
+              <TextField
+                label="Add a note"
+                value={noteDraft}
+                onChange={(e) => onNoteDraftChange(e.target.value)}
+                size="small"
+                multiline
+                minRows={2}
+                fullWidth
+                inputProps={{ maxLength: 2000 }}
+                sx={{ mt: 1 }}
+              />
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={!noteDraft.trim() || isAddingNote}
+                onClick={onAddNote}
+                sx={{ mt: 1 }}
+              >
+                {isAddingNote ? "Adding..." : "Add Note"}
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -322,6 +390,83 @@ const DeveloperDash = () => {
   const [activeFilters, setActiveFilters] = useState(defaultActiveFilters);
   const [filterAnchor, setFilterAnchor] = useState(null);
   
+  const [notes, setNotes] = useState([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [noteError, setNoteError] = useState("");
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const summary = useMemo(() => {
+    const isActive = (r) => !["resolved", "closed"].includes(r.status);
+    return {
+      total: allBugReports.length,
+      open: allBugReports.filter((r) => r.status === "open").length,
+      inProgress: allBugReports.filter((r) => ["triaged", "in_progress"].includes(r.status)).length,
+      critical: allBugReports.filter((r) => r.severity === "critical" && isActive(r)).length,
+      done: allBugReports.filter((r) => ["resolved", "closed"].includes(r.status)).length,
+    };
+  }, [allBugReports]);
+
+  const filteredReports = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return bugReports;
+    return bugReports.filter((r) =>
+      [r.subject, r.description, r.reporter?.name]
+        .filter(Boolean)
+        .some((v) => v.toLowerCase().includes(term))
+    );
+  }, [bugReports, searchTerm]);
+
+  const authHeaders = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${Cookies.get("token")}`,
+  });
+
+  const loadNotes = async (reportId) => {
+    setNotesLoading(true);
+    setNoteError("");
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL || ""}/api/bug-reports/${reportId}/notes`,
+        { headers: authHeaders(), credentials: "include" }
+      );
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || `Failed to load notes: ${res.status}`);
+      setNotes(Array.isArray(payload.data) ? payload.data : []);
+    } catch (err) {
+      setNoteError(err.message);
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!selectedReport?.id || !noteDraft.trim()) return;
+    setIsAddingNote(true);
+    setNoteError("");
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL || ""}/api/bug-reports/${selectedReport.id}/notes`,
+        {
+          method: "POST",
+          headers: authHeaders(),
+          credentials: "include",
+          body: JSON.stringify({ note: noteDraft.trim() }),
+        }
+      );
+      const payload = await res.json();
+      if (!res.ok || !payload?.data) {
+        throw new Error(payload?.errors?.join(", ") || payload?.error || `Failed to add note: ${res.status}`);
+      }
+      setNotes((current) => [...current, payload.data]);
+      setNoteDraft("");
+    } catch (err) {
+      setNoteError(err.message);
+    } finally {
+      setIsAddingNote(false);
+    }
+  };
 
   useEffect(() => {
     const fetchBugReports = async () => {
@@ -417,6 +562,9 @@ const DeveloperDash = () => {
     setDraftSeverity(report.severity || "low");
     setSaveError("");
     setSaveSuccess("");
+    setNotes([]);
+    setNoteDraft("");
+    loadNotes(report.id);
   };
 
   const handleCloseReport = () => {
@@ -426,6 +574,9 @@ const DeveloperDash = () => {
     setSaveError("");
     setSaveSuccess("");
     setIsSaving(false);
+    setNotes([]);
+    setNoteDraft("");
+    setNoteError("");
   };
 
   const handleDraftChange = (field, value) => {
@@ -538,13 +689,25 @@ const DeveloperDash = () => {
 
   return (
     <div className="developer-shell">
-      <SideBar />
-    
     <div className="developer-content">
-      <TopBar logoutOnly />
 
       <main className="developer-main">
         <h1>Developer Dashboard</h1>
+
+        <section className="developer-summary-grid">
+          {[
+            ["Total", summary.total],
+            ["Open", summary.open],
+            ["In Progress", summary.inProgress],
+            ["Critical (active)", summary.critical],
+            ["Resolved / Closed", summary.done],
+          ].map(([label, count]) => (
+            <div key={label} className="developer-summary-card">
+              <span className="developer-summary-count">{count}</span>
+              <span className="developer-summary-label">{label}</span>
+            </div>
+          ))}
+        </section>
 
         <section className="developer-report-card">
           <h2>Bug Reports</h2>
@@ -556,6 +719,20 @@ const DeveloperDash = () => {
               {error}
             </Alert>
           )}
+
+          <div className="developer-toolbar">
+            <TextField
+              size="small"
+              label="Search subject, description, reporter"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ minWidth: 280 }}
+            />
+            <Button size="small" variant="outlined" href="/email-logs">
+              Email Logs
+            </Button>
+          </div>
+
 
           <Button
           variant="contained"
@@ -745,7 +922,7 @@ const DeveloperDash = () => {
               )}
 
               {!loading &&
-                bugReports.map((report, index) => (
+                filteredReports.map((report, index) => (
                   <tr
                     key={report.id}
                     className="developer-report-row developer-report-row-enter"
@@ -776,6 +953,13 @@ const DeveloperDash = () => {
                     <td>{formatCreatedAt(report.createdAt || report.created_at)}</td>
                   </tr>
                 ))}
+              {!loading && bugReports.length > 0 && filteredReports.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="developer-empty-row">
+                    No bug reports match your filters.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </section>
@@ -792,6 +976,13 @@ const DeveloperDash = () => {
           onSave={handleSaveReport}
           formatCreatedAt={formatCreatedAt}
           reporterNames={reporterNames}
+          notes={notes}
+          notesLoading={notesLoading}
+          noteDraft={noteDraft}
+          noteError={noteError}
+          isAddingNote={isAddingNote}
+          onNoteDraftChange={setNoteDraft}
+          onAddNote={handleAddNote}
         />
       </main>
     </div>

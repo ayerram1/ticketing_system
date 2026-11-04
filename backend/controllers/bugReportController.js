@@ -1,6 +1,6 @@
 const Joi = require("joi");
 const { Op } = require("sequelize");
-const { BugReport, User } = require("../models");
+const { BugReport, BugReportNote, User } = require("../models");
 
 const hasAttr = (name) => !!BugReport?.rawAttributes?.[name];
 const reporterInclude = {
@@ -9,6 +9,9 @@ const reporterInclude = {
   attributes: ["user_id", "name", "email"],
 };
 const AUTO_CLOSE_DELAY_MS = 24 * 60 * 60 * 1000;
+
+const isDevOrAdmin = (req) => ["developer", "admin"].includes(req.user?.role);
+const authorInclude = { model: User, as: "author", attributes: ["user_id", "name"] };
 
 const withPriority = (row) => {
   const plain = row?.toJSON ? row.toJSON() : row;
@@ -57,6 +60,11 @@ const createSchema = Joi.object({
   description: Joi.string().trim().max(10000).required(),
   priority: Joi.string().valid("Low", "Medium", "High").optional(),
   severity: Joi.string().valid("low", "medium", "high", "critical").optional(),
+  context: Joi.object({
+    page: Joi.string().max(200).allow(""),
+    browser: Joi.string().max(300).allow(""),
+    viewport: Joi.string().max(30).allow(""),
+  }).unknown(false).optional(),
 }).unknown(false);
 
 const updateSchema = Joi.object({
@@ -66,6 +74,11 @@ const updateSchema = Joi.object({
   severity: Joi.string().valid("low", "medium", "high", "critical"),
   status: Joi.string().valid("open", "triaged", "in_progress", "resolved", "closed"),
 }).min(1).unknown(false);
+
+const noteSchema = Joi.object({
+  note: Joi.string().trim().min(1).max(2000).required(),
+}).unknown(false);
+
 
 
 exports.create = async (req, res) => {
@@ -95,6 +108,13 @@ exports.create = async (req, res) => {
 
     if (hasAttr("status")) payload.status = "open";
 
+    if (hasAttr("reporter_context")) {
+      payload.reporter_context = {
+        ...(value.context || {}),
+        role: req.user?.role || null,
+      };
+    }
+
     const uid = req.user?.user_id ?? req.user?.id ?? null;
     if (uid !== null) {
       if (hasAttr("user_id")) payload.user_id = uid;
@@ -113,6 +133,10 @@ exports.create = async (req, res) => {
 exports.list = async (req, res) => {
   try {
     const where = {};
+
+    if (!isDevOrAdmin(req) || req.query.mine === "true") {
+      where.reporter_id = req.user?.id ?? -1;
+    }
 
     if (req.query.status && hasAttr("status")) {
       where.status = req.query.status;
@@ -156,6 +180,9 @@ exports.getOne = async (req, res) => {
 
     const row = await BugReport.findByPk(id, { include: [reporterInclude] });
     if (!row) return res.status(404).json({ ok: false, error: "Not found" });
+    if (!isDevOrAdmin(req) && row.reporter_id !== (req.user?.id ?? null)) {
+      return res.status(403).json({ ok: false, error: "Forbidden" });
+    }
     await autoCloseBugReport(row);
 
     return res.json({ ok: true, data: withPriority(row) });
@@ -241,6 +268,50 @@ exports.remove = async (req, res) => {
     return res.json({ ok: true });
   } catch (e) {
     console.error("[bugReportController.remove]", e);
+    return res.status(500).json({ ok: false, error: "Internal error" });
+  }
+};
+
+exports.listNotes = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ ok: false, error: "Invalid id" });
+    }
+    const notes = await BugReportNote.findAll({
+      where: { bug_report_id: id },
+      include: [authorInclude],
+      order: [["createdAt", "ASC"]],
+    });
+    return res.json({ ok: true, data: notes });
+  } catch (e) {
+    console.error("[bugReportController.listNotes]", e);
+    return res.status(500).json({ ok: false, error: "Internal error" });
+  }
+};
+
+exports.addNote = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ ok: false, error: "Invalid id" });
+    }
+    const { value, error } = noteSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+      return res.status(400).json({ ok: false, errors: error.details.map((d) => d.message) });
+    }
+    const report = await BugReport.findByPk(id);
+    if (!report) return res.status(404).json({ ok: false, error: "Not found" });
+
+    const saved = await BugReportNote.create({
+      bug_report_id: id,
+      author_id: req.user?.id ?? null,
+      note: value.note,
+    });
+    const note = await BugReportNote.findByPk(saved.id, { include: [authorInclude] });
+    return res.status(201).json({ ok: true, data: note });
+  } catch (e) {
+    console.error("[bugReportController.addNote]", e);
     return res.status(500).json({ ok: false, error: "Internal error" });
   }
 };

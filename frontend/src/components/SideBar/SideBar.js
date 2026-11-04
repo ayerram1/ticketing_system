@@ -54,7 +54,10 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
       setSelectedPage(0); // Dashboard
     } else if (path.startsWith("/help/faq")) {
       setSelectedPage(8); // Help
-    } else{
+    } else if (path.startsWith("/bug-reports-list")) {
+      setSelectedPage(7); // My Bug Reports
+    }
+     else{
       setSelectedPage(-1); // No selection for unrecognized routes
     }
   }, [location.pathname]);
@@ -344,6 +347,22 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
           </ListItemIcon>
           <ListItemText className="fontStyle" primary="Help / FAQ" />
         </ListItemButton>
+
+        {userType !== "developer" && (
+          <ListItemButton
+            className="buttonStyle"
+            selected={selectedPage === 7}
+            onClick={() => {
+              setSelectedPage(7);
+              navigate("/bug-reports-list");
+            }}
+          >
+            <ListItemIcon>
+              <BugReportIcon className="iconStyle" />
+            </ListItemIcon>
+            <ListItemText className="fontStyle" primary="My Bug Reports" />
+          </ListItemButton>
+        )}
 
         { (userType === "student" || userType === "TA") && (
           <ListItemButton

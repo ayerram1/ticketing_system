@@ -6,6 +6,7 @@ const TicketAssignment = require("./TicketAssignment");
 const PasswordResetToken = require("./PasswordResetToken");
 const StudentData = require("./StudentData");
 const BugReport = require("./bugreport");
+const BugReportNote = require("./BugReportNote");
 const EmailLog = require("./EmailLog");
 const TeamSponsorHistory = require("./TeamSponsorHistory");
 const BulkUploadChangeHistory = require("./BulkUploadChangeHistory");
@@ -26,6 +27,10 @@ Ticket.belongsTo(User, { foreignKey: "student_id", as: "student" });
 
 User.hasMany(BugReport, { foreignKey: "reporter_id" });
 BugReport.belongsTo(User, { foreignKey: "reporter_id", as: "reporter" });
+
+BugReport.hasMany(BugReportNote, { foreignKey: "bug_report_id", as: "notes", onDelete: "CASCADE" });
+BugReportNote.belongsTo(BugReport, { foreignKey: "bug_report_id" });
+BugReportNote.belongsTo(User, { foreignKey: "author_id", as: "author" });
 
 StudentData.belongsTo(User, { foreignKey: "user_id" });
 User.hasOne(StudentData, { foreignKey: "user_id" });
@@ -48,6 +53,7 @@ module.exports = {
   PasswordResetToken,
   StudentData,
   BugReport,
+  BugReportNote,
   EmailLog,
   TeamSponsorHistory,
   BulkUploadChangeHistory,

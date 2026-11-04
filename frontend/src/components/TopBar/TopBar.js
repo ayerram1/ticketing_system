@@ -30,8 +30,8 @@ const TopBar = () => {
         setAnchorEl(null);
     };
 
-    const handleNavigation = (path) => {
-        navigate(path);
+    const handleNavigation = (path, state) => {
+        navigate(path, state ? { state } : undefined);
         handleCloseMenu();
     };
 
@@ -73,7 +73,7 @@ const TopBar = () => {
                             Profile
                         </MenuItem>
 
-                        <MenuItem onClick={() => handleNavigation("/bug-report")}>
+                        <MenuItem onClick={() => handleNavigation("/bug-report", { from: window.location.pathname })}>
                             <ListItemIcon><BugReportIcon fontSize="small" /></ListItemIcon>
                             Report a Bug
                         </MenuItem>
