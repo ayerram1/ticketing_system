@@ -1,0 +1,33 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies
+node_modules/
+
+# Private keys and secrets
+certs/sp-key.pem
+*.key
+*.pfx
+*.p12
+
+# Environment variables & secrets
+.env
+.env.*
+*.env
+config/config.json
+
+# Build outputs
+build/
+dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

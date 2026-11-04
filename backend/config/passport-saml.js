@@ -43,6 +43,9 @@ const samlStrategy = new SamlStrategy(
     privateKey: spKey || undefined,
     decryptionPki: spKey || undefined,
     identifierFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+    signatureAlgorithm: 'sha256',
+    digestAlgorithm: 'sha256',
+    disableRequestedAuthnContext: true,
   },
   async (profile, done) => {
     try {

@@ -1,0 +1,38 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Private keys and secrets (CRITICAL: Never bake private keys into Docker images)
+backend/certs/sp-key.pem
+certs/*.key
+*.key
+*.pfx
+*.p12
+
+# Environment variables & secrets
+.env
+.env.*
+*.env
+backend/.env
+backend/config/config.json
+
+# Build outputs
+build/
+**/build/
+dist/
+**/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

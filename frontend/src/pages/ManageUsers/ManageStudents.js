@@ -798,8 +798,8 @@ const ManageStudents = () => {
                                     onChange={(event) => setSelectedNotificationType(event.target.value)}
                                 >
                                     <MenuItem value="email-notification">Welcome E-mail</MenuItem>
-                                    {/* <MenuItem value="email-notification-2">Test2</MenuItem>
-                                    <MenuItem value="email-notification-3">Test3</MenuItem> */}
+                                    <MenuItem value="email-notification-2">Ta and Grader Assignment</MenuItem>
+                                    <MenuItem value="email-notification-3">Project Assignment</MenuItem> 
                                 </Select>
                             </FormControl>
                         )}
