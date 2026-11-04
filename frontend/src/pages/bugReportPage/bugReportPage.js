@@ -11,8 +11,10 @@ import {
   Typography,
 } from "@mui/material";
 import BugReportIcon from "@mui/icons-material/BugReport";
+import { useLocation } from "react-router-dom";
 
 export default function BugReportPage() {
+  const location = useLocation();
   const [form, setForm] = useState({
     subject: "",
     description: "",
@@ -37,6 +39,11 @@ export default function BugReportPage() {
         subject: form.subject,
         description: form.description,
         severity: form.priority.toLowerCase(),
+        context: {
+          page: location.state?.from || "",
+          browser: navigator.userAgent.slice(0, 300),
+          viewport: `${window.innerWidth}x${window.innerHeight}`,
+        },
       };
 
       const res = await fetch(

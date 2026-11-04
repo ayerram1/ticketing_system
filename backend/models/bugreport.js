@@ -17,6 +17,7 @@ const BugReport = sequelize.define(
       defaultValue: "open",
     },
     reporter_id: { type: DataTypes.INTEGER, allowNull: true },
+    reporter_context: { type: DataTypes.JSON, allowNull: true },
   },
   {
     tableName: "bugreports", // match your migration’s table name

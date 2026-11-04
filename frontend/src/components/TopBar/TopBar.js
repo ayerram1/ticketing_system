@@ -30,8 +30,8 @@ const TopBar = () => {
         setAnchorEl(null);
     };
 
-    const handleNavigation = (path) => {
-        navigate(path);
+    const handleNavigation = (path, state) => {
+        navigate(path, state ? { state } : undefined);
         handleCloseMenu();
     };
 

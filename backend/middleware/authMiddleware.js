@@ -83,6 +83,10 @@ isAdmin: (req, res, next) => {
             res.status(403).json({ error: "Forbidden: Staff access required" });
         }
     },
+    isDeveloperOrAdmin: (req, res, next) => {
+      if (req.user && (req.user.role === "developer" || req.user.role === "admin")) return next();
+      return res.status(403).json({ error: "Forbidden" });
+    },
     isSelfOrAdmin: (req, res, next) => {
     const requestedUserId = parseInt(req.params.user_id, 10);
     const loggedInUserId = req.user?.id;

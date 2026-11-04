@@ -16,7 +16,30 @@
 .developer-main {
   flex: 1;
   padding: 50px;
-  margin-left: 240px;
+}
+
+.developer-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.developer-summary-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.developer-summary-count { font-size: 1.8rem; font-weight: 700; }
+.developer-summary-label { font-size: 0.85rem; color: #666; }
+.developer-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .developer-main h1 {
