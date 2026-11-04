@@ -18,7 +18,6 @@ backend/certs/sp-key.pem
 # Config & local credentials
 backend/config/config.json
 !backend/config/config.example.json
-backend/scripts/dbSetup.js
 
 # Build outputs
 build/
