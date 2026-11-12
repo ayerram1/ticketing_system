@@ -16,6 +16,7 @@ const AllAssignees = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [taCounts, setTACounts] = useState({});
+  const [taWorkloads, setTAWorkloads] = useState({});
   const [graderCounts, setGraderCounts] = useState({});
   const [userRole, setUserRole] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -59,7 +60,7 @@ const AllAssignees = () => {
       const token = Cookies.get("token");
       const decodedToken = jwtDecode(token);
 
-      const response = await fetch(`${baseURL}/api/users/role/TA`, {
+      const taResponse = await fetch(`${baseURL}/api/users/role/TA`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -67,16 +68,47 @@ const AllAssignees = () => {
         },
       });
 
-      if (!response.ok) {
+      if (!taResponse.ok) {
         throw new Error("Failed to fetch TAs");
       }
 
-      let tasData = await response.json();
+      const tasData = await taResponse.json();
 
       // All roles see all TAs - no filtering needed
       setTAs(tasData);
       setFilteredTAs(tasData);
-      await fetchAssigneeCounts(tasData, setTACounts);
+
+      // The workload endpoint is intentionally admin-only. Other page viewers
+      // retain the existing, visibility-filtered status counts.
+      if (decodedToken.role === "admin") {
+        const workloadResponse = await fetch(
+          `${baseURL}/api/ticketassignments/ticketCountsByTA`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!workloadResponse.ok) {
+          throw new Error("Failed to fetch TA ticket workloads");
+        }
+
+        const workloads = await workloadResponse.json();
+        setTAWorkloads(
+          workloads.reduce((workloadsByUserId, workload) => {
+            workloadsByUserId[workload.user_id] = {
+              openTickets: workload.open_tickets,
+              totalTickets: workload.total_tickets,
+            };
+            return workloadsByUserId;
+          }, {})
+        );
+      } else {
+        await fetchAssigneeCounts(tasData, setTACounts);
+      }
       setLoading(false);
     } catch (error) {
       console.error("Error fetching TAs:", error);
@@ -398,6 +430,7 @@ const AllAssignees = () => {
                 key={ta.user_id}
                 name={ta.name}
                 counts={taCounts[ta.user_id]?.counts || {new:0, ongoing:0, resolved:0}}
+                workload={userRole === "admin" ? taWorkloads[ta.user_id] : undefined}
                 userId={ta.user_id}
                 roleLabel="UGTA"
               />

@@ -1,7 +1,32 @@
 const TicketAssignment = require("../models/TicketAssignment");
 const User = require("../models/User");
 const Ticket = require("../models/Ticket");
-const Sequelize = require("sequelize");
+const sequelize = require("../config/db");
+const { QueryTypes, UniqueConstraintError } = require("sequelize");
+
+// This deliberately starts with the TA list and LEFT JOINs the assignments so
+// TAs who have not been assigned a ticket are returned with zeroes as well.
+// A UNION ALL keeps regular student tickets and TA-created tickets distinct:
+// their ticket ids come from different tables and can overlap.
+const TA_TICKET_WORKLOAD_QUERY = `
+  SELECT
+    users.user_id,
+    COALESCE(SUM(CASE WHEN assignments.status IN ('new', 'ongoing') THEN 1 ELSE 0 END), 0) AS open_tickets,
+    COUNT(assignments.ticket_id) AS total_tickets
+  FROM users
+  LEFT JOIN (
+    SELECT DISTINCT ticketassignments.user_id, ticketassignments.ticket_id, CAST(tickets.status AS TEXT) AS status
+    FROM ticketassignments
+    INNER JOIN tickets ON tickets.ticket_id = ticketassignments.ticket_id
+    UNION ALL
+    SELECT DISTINCT taticketassignments.user_id, taticketassignments.ticket_id, CAST(tatickets.status AS TEXT) AS status
+    FROM taticketassignments
+    INNER JOIN tatickets ON tatickets.ticket_id = taticketassignments.ticket_id
+  ) AS assignments ON assignments.user_id = users.user_id
+  WHERE users.role = 'TA'
+  GROUP BY users.user_id, users.name
+  ORDER BY users.name ASC
+`;
 
 exports.getAllTicketAssignments = async (req, res) => {
   try {
@@ -129,7 +154,7 @@ exports.assignTicket = async (req, res) => {
     res.status(201).json(ticketAssignment);
   } catch (error) {
     // handle unique constraint race if it still occurs
-    if (error instanceof Sequelize.UniqueConstraintError) {
+    if (error instanceof UniqueConstraintError) {
       return res.status(409).json({ error: "Assignment already exists" });
     }
     res.status(500).json({ error: error.message });
@@ -152,30 +177,19 @@ exports.removeTicketAssignment = async (req, res) => {
   }
 };
 
-// Added this
-
 exports.getTicketCountsByTA = async (req, res) => {
   try {
-    // Fetch all users with the role "TA"
-    const TAs = await User.findAll({
-      where: { role: "TA" },
-      attributes: ["user_id", "name", "role"],
-      // include: [
-      //   {
-      //     model: TicketAssignment,
-      //   },
-      // ],
+    const workloads = await sequelize.query(TA_TICKET_WORKLOAD_QUERY, {
+      type: QueryTypes.SELECT,
     });
 
-    // Log the fetched TAs for debugging
-    console.log("Fetched TAs:", TAs);
-
-    // Return the TAs as a JSON response
-    res.json(TAs);
+    res.json(workloads.map((workload) => ({
+      user_id: Number(workload.user_id),
+      open_tickets: Number(workload.open_tickets),
+      total_tickets: Number(workload.total_tickets),
+    })));
   } catch (error) {
-    console.error("Detailed error message:", error.message);
-    console.error("Error stack trace:", error.stack);
-    res.status(500).json({ error: "An error occurred while fetching TAs." });
+    res.status(500).json({ error: "An error occurred while fetching TA ticket workloads." });
   }
 };
 

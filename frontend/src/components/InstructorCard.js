@@ -61,6 +61,7 @@ const defaultProps = {
 const InstructorCard = ({
   name = defaultProps.name,
   counts = defaultProps.counts,
+  workload,
   userId = defaultProps.userId,
   roleLabel = "UGTA",
 }) => {
@@ -186,6 +187,9 @@ const InstructorCard = ({
   };
 
   const getTotalActiveTickets = () => {
+    if (workload) {
+      return workload.openTickets;
+    }
     return counts.new + counts.ongoing;
   };
 
@@ -338,34 +342,55 @@ const InstructorCard = ({
             Tickets
           </Typography>
           
-          <Box sx={{ display: "flex", flexDirection: "row", gap: 2, justifyContent:"center" }}>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <Typography variant="h6" sx={{ fontWeight: "bold", color: "#D00505", fontSize: "1rem" }}>
-                {counts.new}
-              </Typography>
-              <Typography variant="caption" sx={{ color: "#D00505", fontSize: "0.7rem" }}>
-                New
-              </Typography>
+          {workload ? (
+            <Box sx={{ display: "flex", flexDirection: "row", gap: 2, justifyContent:"center" }}>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <Typography variant="h5" sx={{ fontWeight: "bold", color: "#1965D8", fontSize: "1.25rem" }}>
+                  {workload.openTickets}
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#1965D8", fontSize: "0.7rem" }}>
+                  Open
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: theme.palette.text.secondary, fontSize: "1rem" }}>
+                  {workload.totalTickets}
+                </Typography>
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: "0.7rem" }}>
+                  Total
+                </Typography>
+              </Box>
             </Box>
-            
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1965D8", fontSize: "1rem" }}>
-                {counts.ongoing}
-              </Typography>
-              <Typography variant="caption" sx={{ color: "#1965D8", fontSize: "0.7rem" }}>
-                Active
-              </Typography>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "row", gap: 2, justifyContent:"center" }}>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: "#D00505", fontSize: "1rem" }}>
+                  {counts.new}
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#D00505", fontSize: "0.7rem" }}>
+                  New
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1965D8", fontSize: "1rem" }}>
+                  {counts.ongoing}
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#1965D8", fontSize: "0.7rem" }}>
+                  Active
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1C741F", fontSize: "1rem" }}>
+                  {counts.resolved}
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#1C741F", fontSize: "0.7rem" }}>
+                  Done
+                </Typography>
+              </Box>
             </Box>
-            
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1C741F", fontSize: "1rem" }}>
-                {counts.resolved}
-              </Typography>
-              <Typography variant="caption" sx={{ color: "#1C741F", fontSize: "0.7rem" }}>
-                Done
-              </Typography>
-            </Box>
-          </Box>
+          )}
         </Box>
 
         <Box 
