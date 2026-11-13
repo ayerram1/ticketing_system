@@ -49,7 +49,70 @@ export default function SignIn() {
     const [open, setOpen] = React.useState(false);
     const [rememberMe, setRememberMe] = React.useState(false);
     const [showPass, setShowPass] = React.useState(false);
+    const [turnstileToken, setTurnstileToken] = React.useState("");
+    const [captchaError, setCaptchaError] = React.useState("");
+    const turnstileContainerRef = React.useRef(null);
+    const turnstileWidgetId = React.useRef(null);
     const baseURL = process.env.REACT_APP_API_BASE_URL;
+
+    React.useEffect(() => {
+        let intervalId;
+        const siteKey = process.env.TURNSTILE_SITE_KEY || process.env.REACT_APP_TURNSTILE_SITE_KEY || "0x4AAAAAAF9VvXnTwqQwdO17";
+
+        const renderWidget = () => {
+            if (window.turnstile && turnstileContainerRef.current && turnstileWidgetId.current === null) {
+                try {
+                    turnstileWidgetId.current = window.turnstile.render(turnstileContainerRef.current, {
+                        sitekey: siteKey,
+                        action: "login",
+                        callback: (token) => {
+                            setTurnstileToken(token);
+                            setCaptchaError("");
+                        },
+                        "expired-callback": () => {
+                            setTurnstileToken("");
+                        },
+                        "error-callback": () => {
+                            setTurnstileToken("");
+                            setCaptchaError("Security challenge failed to load. Please refresh.");
+                        },
+                    });
+                    if (intervalId) clearInterval(intervalId);
+                } catch (e) {
+                    console.error("Failed to render Turnstile widget:", e);
+                }
+            }
+        };
+
+        if (window.turnstile) {
+            renderWidget();
+        } else {
+            intervalId = setInterval(renderWidget, 100);
+        }
+
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+            if (window.turnstile && turnstileWidgetId.current !== null) {
+                try {
+                    window.turnstile.remove(turnstileWidgetId.current);
+                } catch (e) {
+                    // ignore cleanup errors
+                }
+                turnstileWidgetId.current = null;
+            }
+        };
+    }, []);
+
+    const resetCaptcha = () => {
+        setTurnstileToken("");
+        if (window.turnstile && turnstileWidgetId.current !== null) {
+            try {
+                window.turnstile.reset(turnstileWidgetId.current);
+            } catch (e) {
+                console.error("Turnstile reset failed:", e);
+            }
+        }
+    };
 
     React.useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -104,6 +167,11 @@ export default function SignIn() {
         try {
             event.preventDefault();
 
+            if (!turnstileToken) {
+                setCaptchaError("Please complete the security challenge before signing in.");
+                return;
+            }
+
             if (!validateInputs()) {
                 return;
             }
@@ -116,10 +184,15 @@ export default function SignIn() {
                 body: JSON.stringify({
                     email: data.get("email"),
                     password: data.get("password"),
+                    "cf-turnstile-response": turnstileToken,
+                    turnstileToken: turnstileToken,
                 }),
             });
 
             if (!response.ok) {
+                // Tokens are single-use; reset CAPTCHA immediately on failure
+                resetCaptcha();
+
                 let msg = "Incorrect Email or Password";
 
                 if (response.status === 403) {
@@ -127,9 +200,10 @@ export default function SignIn() {
                         const errorData = await response.json();
                         if (errorData.error && errorData.error.includes("disabled")) {
                             msg = "This account has been disabled. Please contact an administrator.";
+                        } else if (errorData.error && errorData.error.toLowerCase().includes("captcha")) {
+                            msg = "Security challenge verification failed. Please try again.";
                         }
                     } catch (e) {
-                        // Response wasn't JSON, just use a generic 403 message
                         msg = "This account has been disabled. Please contact an administrator.";
                     }
                 }
@@ -143,28 +217,28 @@ export default function SignIn() {
 
             const { token, mustChangePassword } = await response.json();
 
-const isLocalhost = window.location.hostname === "localhost";
+            const isLocalhost = window.location.hostname === "localhost";
 
-Cookies.set("token", token, {
-    secure: !isLocalhost,
-    sameSite: "Strict",
-    expires: rememberMe ? 7 : undefined
-});
+            Cookies.set("token", token, {
+                secure: !isLocalhost,
+                sameSite: "Strict",
+                expires: rememberMe ? 7 : undefined
+            });
 
-const decoded = jwtDecode(token);
-const userType = decoded.role;
-const userId = decoded.id;
-const userName = decoded.name;
+            const decoded = jwtDecode(token);
+            const userType = decoded.role;
+            const userId = decoded.id;
+            const userName = decoded.name;
 
-Cookies.set("user_id", userId, {
-    secure: !isLocalhost,
-    sameSite: "Strict"
-});
+            Cookies.set("user_id", userId, {
+                secure: !isLocalhost,
+                sameSite: "Strict"
+            });
 
-Cookies.set("name", userName, {
-    secure: !isLocalhost,
-    sameSite: "Strict"
-});
+            Cookies.set("name", userName, {
+                secure: !isLocalhost,
+                sameSite: "Strict"
+            });
 
             try {
                 window.dispatchEvent(new CustomEvent('userChanged'));
@@ -186,10 +260,10 @@ Cookies.set("name", userName, {
             else if (userType === "developer") navigate("/developerdash");
         } catch (e) {
             console.error(e);
+            resetCaptcha();
             setEmailErrorMessage("Something went wrong. Please try again.");
         }
     };
-
 
     return (
         <ThemeProvider theme={lightTheme}>
@@ -285,12 +359,32 @@ Cookies.set("name", userName, {
                                 }
                                 label="Remember me"
                             />
-                            {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
+
+                            {/* Cloudflare Turnstile Widget */}
+                            <Box
+                                ref={turnstileContainerRef}
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    my: 1.5,
+                                    minHeight: "65px",
+                                }}
+                            />
+                            {captchaError && (
+                                <Typography
+                                    color="error"
+                                    variant="caption"
+                                    sx={{ display: "block", textAlign: "center", mb: 1 }}
+                                >
+                                    {captchaError}
+                                </Typography>
+                            )}
+
                             <Button
                                 type="submit"
                                 fullWidth
                                 variant="contained"
-                                // onClick={validateInputs} // Removed onClick, validation is in handleSubmit
+                                disabled={!turnstileToken}
                                 className="primaryButton"
                             >
                                 Sign in
@@ -316,20 +410,6 @@ Cookies.set("name", userName, {
                             >
                                 Sign in with ASU SSO
                             </Button>
-
-                            
-                            {/*<Typography>
-                                Don&apos;t have an account?{" "}
-                                <span>
-                <Link
-                    href=""
-                    variant="body2"
-                    onClick={handleSignUp}
-                >
-                  Sign up
-                </Link>
-              </span>
-                            </Typography>*/} 
                         </Box>
                     </MuiCard>
                     {/* Sparky (right) */}
