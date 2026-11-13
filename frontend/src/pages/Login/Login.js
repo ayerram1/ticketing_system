@@ -57,7 +57,7 @@ export default function SignIn() {
 
     React.useEffect(() => {
         let intervalId;
-        const siteKey = process.env.TURNSTILE_SITE_KEY || process.env.REACT_APP_TURNSTILE_SITE_KEY || "0x4AAAAAAF9VvXnTwqQwdO17";
+        const siteKey = process.env.TURNSTILE_SITE_KEY || "0x4AAAAAAF9VvXnTwqQwdO17";
 
         const renderWidget = () => {
             if (window.turnstile && turnstileContainerRef.current && turnstileWidgetId.current === null) {

@@ -43,9 +43,9 @@ module.exports = {
       "process.env": JSON.stringify({
         REACT_APP_API_BASE_URL:
           process.env.REACT_APP_API_BASE_URL || "http://localhost:3301",
-        REACT_APP_TURNSTILE_SITE_KEY:
-          process.env.REACT_APP_TURNSTILE_SITE_KEY ||
+        TURNSTILE_SITE_KEY:
           process.env.TURNSTILE_SITE_KEY ||
+          process.env.REACT_APP_TURNSTILE_SITE_KEY ||
           "0x4AAAAAAF9VvXnTwqQwdO17",
       }),
     }),
