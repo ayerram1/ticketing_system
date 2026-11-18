@@ -14,6 +14,8 @@ import { jwtDecode } from "jwt-decode";
 import InstructorCard from "../../components/InstructorCard";
 import Pagination from "../../components/Pagination/Pagination";
 import { fetchTicketAssignmentsByUserId, fetchTicketById } from "../../services/ticketServices";
+import InstructorGraph from './InstructorGraph';
+import AssignedChart from './AssignedTickChart';
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const InstructorDash = () => {
@@ -528,6 +530,21 @@ const InstructorDash = () => {
           ))}
         </div>
       </Box>
+      <Box
+            sx={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 2.5,
+                backgroundColor: theme.palette.background.paper,
+                padding: 2.5,
+                borderRadius: 1,
+                flex: 1,
+              }}>
+              <InstructorGraph display="flex"/>
+              <AssignedChart display="flex"/>
+              
+            </Box>
+            
     </Box>
   );
 };

@@ -9,7 +9,8 @@ import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
 import TicketsViewController from "../../components/TicketsViewController";
 import Pagination from "../../components/Pagination/Pagination";
-import NewChart from "./NewChart";
+import AdminChart from "./AdminChart";
+import StudentChart from "../StudentDash/StudentChart";
 
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -648,7 +649,7 @@ const AdminDash = () => {
           borderRadius: 1,
           flex: 1,
         }}>
-        <NewChart/>
+        <AdminChart/>
       </Box>
     </Box>
     

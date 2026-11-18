@@ -20,7 +20,7 @@ router.get(
 router.get(
   "/",
   authMiddleware.verifyToken,
-  authMiddleware.isTAOrAdmin,
+  authMiddleware.isTAOrAdminOrDeveloper,
   userController.getAllUsers
 );
 router.get(
