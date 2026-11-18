@@ -8,6 +8,7 @@ import TicketsViewController from "../../components/TicketsViewController";
 import Pagination from "../../components/Pagination/Pagination";
 import { fetchTicketsByUserId } from "../../services/ticketServices";
 import { useNavigate } from "react-router-dom";
+import StudentChart from "./StudentChart";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
@@ -242,6 +243,17 @@ const StudentDash = () => {
             </Button>
           </Box>
         )}
+      </Box>
+      <Box sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
+          flex: 1,
+        }}>
+        <StudentChart/>
       </Box>
     </Box>
   );

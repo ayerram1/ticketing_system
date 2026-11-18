@@ -14,6 +14,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import "./DeveloperDash.css";
+import DevGraph from "./DevGraph";
 
 const STATUS_OPTIONS = ["open", "triaged", "in_progress", "resolved", "closed"];
 const SEVERITY_OPTIONS = ["low", "medium", "high", "critical"];
@@ -985,6 +986,17 @@ const DeveloperDash = () => {
           onAddNote={handleAddNote}
         />
       </main>
+      <Box sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2.5,
+                backgroundColor: "white",
+                padding: 2.5,
+                borderRadius: 1,
+                flex: 1,
+              }}>
+              <DevGraph/>
+            </Box>
     </div>
     </div>
   );

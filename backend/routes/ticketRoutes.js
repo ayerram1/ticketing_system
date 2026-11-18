@@ -24,7 +24,7 @@ router.get(
 router.get( //depricated
   "/ta/:ta_id",
   authMiddleware.verifyToken,
-  authMiddleware.isTAOrAdmin,
+  authMiddleware.isTAOrAdminOrDeveloper,
   ticketController.getTicketsByTAId
 );
 router.get(
@@ -35,7 +35,7 @@ router.get(
 router.get(
   "/info/:ticket_id",
   authMiddleware.verifyToken,
-  authMiddleware.isStudentOrTAOrAdmin,
+  authMiddleware.isStudentOrTAOrAdminOrGrader,
   ticketController.getAllTicketDataById
 );
 router.post(

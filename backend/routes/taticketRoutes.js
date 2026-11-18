@@ -7,7 +7,7 @@ const router = express.Router();
 router.get(
     "/",
     authMiddleware.verifyToken,
-    authMiddleware.isTAOrAdmin, //changed 2/20/25 to allow TA to view tickets on instructor dashboard
+    authMiddleware.isTAOrAdminOrDeveloper, //changed 2/20/25 to allow TA to view tickets on instructor dashboard
     ticketController.getAllTickets
 );
 router.get(
@@ -18,7 +18,7 @@ router.get(
 router.get( //depricated
     "/ta/:ta_id",
     authMiddleware.verifyToken,
-    authMiddleware.isTAOrAdmin,
+    authMiddleware.isTAOrAdminOrDeveloper,
     ticketController.getTicketsByTAId
 );
 router.get(
@@ -56,7 +56,7 @@ router.delete(
 router.put(
     "/:ticket_id/status",
     authMiddleware.verifyToken,
-    authMiddleware.isTAOrAdmin,
+    authMiddleware.isTAOrAdminOrDeveloper,
     ticketController.updateTicketStatus
 );
 router.put(
