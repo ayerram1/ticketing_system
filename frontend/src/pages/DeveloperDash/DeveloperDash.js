@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import "./DeveloperDash.css";
 import DevGraph from "./DevGraph";
@@ -818,16 +819,16 @@ const DeveloperDash = () => {
 
             {/* Status: resolved*/}
             <MenuItem
-              selected={activeFilters.status === "resolved"}
+              selected={activeFilters.status === "closed"}
               onClick={() => {
-                setActiveFilters((prev) => ({...prev, status: prev.status === "resolved" ? null : "resolved",}));
+                setActiveFilters((prev) => ({...prev, status: prev.status === "closed" ? null : "closed",}));
                 handleFilterClose();
               }}
             >
               <span style={{ marginRight: 8 }}>
-                {activeFilters.status === "resolved" ? "✔" : ""}
+                {activeFilters.status === "closed" ? "✔" : ""}
               </span>
-            Status: Resolved
+            Status: Closed
             </MenuItem>
 
             {/* Severity Low */}
