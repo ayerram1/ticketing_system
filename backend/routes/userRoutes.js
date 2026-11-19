@@ -42,13 +42,13 @@ router.post(
 router.put( //changed to allow students and TAs to edit their own profile
   "/:user_id",
   authMiddleware.verifyToken,
-  authMiddleware.isStudentOrTAOrAdmin,
+  authMiddleware.isEveryUserOfApp,
   userController.updateUser
 );
 router.delete(
   "/:user_id",
   authMiddleware.verifyToken,
-  authMiddleware.isAdmin,
+  authMiddleware.isCentralDeveloperOrAdmin,
   userController.deleteUser
 );
 router.get(
@@ -80,4 +80,11 @@ router.post(
   authMiddleware.isStaffOrStudent,
   userController.emailNotification4
 );
+router.put(
+  "/:user_id/dev-role",
+  authMiddleware.verifyToken,
+  authMiddleware.isCentralDeveloper,
+  userController.updateDevRole
+);
+
 module.exports = router;
