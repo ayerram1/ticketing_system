@@ -13,6 +13,7 @@ import {
 import BugReportIcon from "@mui/icons-material/BugReport";
 import { useLocation } from "react-router-dom";
 
+const token = Cookies.get("token");
 const getBrowserName = () => {
         const ua = navigator.userAgent;
         const os = /Windows/.test(ua) ? "Windows" : /Mac OS X/.test(ua) ? "macOS" : /Android/.test(ua) ? "Android" : /iPhone|iPad/.test(ua) ? "iOS" : /Linux/.test(ua) ? "Linux" : "Unknown OS";
@@ -29,18 +30,64 @@ export default function BugReportPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [developers, setdevelopers] = useState([])
 
   const onChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  //Need to work on this as the first time a high severity
+  //bug is reporte it doesn't send out an email
+  const fetchDevs = async ()=>{
+    const response = await fetch(
+      `${process.env.REACT_APP_API_BASE_URL}/api/users/role/developer`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    setdevelopers(data);
+  }
+
+  //********************************************************************** */
   const onSubmit = async (e) => {
+    fetchDevs();
     e.preventDefault();
     setSubmitting(true);
     setResult(null);
-
     try {
-      const token = Cookies.get("token");
-      if (!token) throw new Error("No token found. Please log in again.");
+      //Need to work on this as high priority bugs aren't
+      //sending emails the first time but each report after
+      //does
+      if(form.priority=="High"){
+        const endpoint = "email-notification-4"
+      for (const developer of selectedDeveloper){
+        const {email} = developer;
+        console.log("send to", developer)
+        try {
+          const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/users/${endpoint}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        name: developer.name,
+                        email: developer.email,
+                        role: "developer",
+                    }),
+                });
+          const temp = await response.json();
+        } catch (error) {
+                console.error(`Failed to send notification to ${email}:`, error);
+            }
+      }
+    }
+    //****************************************************************** */
+      
 
 
       const payload = {

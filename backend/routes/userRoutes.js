@@ -74,4 +74,10 @@ router.post(
   authMiddleware.isAdmin,
   userController.emailNotification3
 );
+router.post(
+  "/email-notification-4",
+  authMiddleware.verifyToken,
+  authMiddleware.isStaffOrStudent,
+  userController.emailNotification4
+);
 module.exports = router;
