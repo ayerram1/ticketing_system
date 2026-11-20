@@ -372,8 +372,8 @@ const BugReportCard = ({
 };
 
 const defaultActiveFilters = {
-  status: null,
-  severity: null,
+  status: [],
+  severity: [],
   sort: "newest",
 };
 
@@ -659,13 +659,18 @@ const DeveloperDash = () => {
 
   const applyFilters = () => {
     let filteredBugReports = [...allBugReports];
-    if (activeFilters.status) {
-      filteredBugReports = filteredBugReports.filter((report) => report.status?.toLowerCase() === activeFilters.status.toLowerCase());
+    //MultiStatus
+    if (activeFilters.status.length > 0) {
+      filteredBugReports = filteredBugReports.filter((report) => activeFilters.status.some((status) => 
+        report.status?.toLowerCase() === status.toLowerCase()));
     }
-    
-    if (activeFilters.severity) {
-    filteredBugReports = filteredBugReports.filter((report) => report.severity?.toLowerCase() === activeFilters.severity.toLowerCase());
+
+    //MultiSeverity
+    if (activeFilters.severity.length > 0) {
+      filteredBugReports = filteredBugReports.filter((report) => activeFilters.severity.some((severity) =>
+          report.severity?.toLowerCase() === severity.toLowerCase()));
     }
+
     if (activeFilters.sort === "newest") {
       filteredBugReports.sort((a, b) =>
         new Date(b.createdAt || b.created_at) -
@@ -678,11 +683,20 @@ const DeveloperDash = () => {
       );
     }
     
-  return setBugReports(filteredBugReports);
-};
+    return setBugReports(filteredBugReports);
+  };
 
   const handleFilterClick = (event) => {
     setFilterAnchor(event.currentTarget);
+  };
+
+  const toggleFilter = (category, optionSelected) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      [category]: prev[category].includes(optionSelected)
+      ? prev[category].filter((option) => option !== optionSelected)
+      : [...prev[category], optionSelected],
+    }));
   };
 
   const handleFilterClose = () => {
@@ -777,114 +791,74 @@ const DeveloperDash = () => {
 
             {/* Status: Open*/}
             <MenuItem
-              selected={activeFilters.status === "open"}
-              onClick={() => {
-                setActiveFilters((prev) => ({...prev, status: prev.status === "open" ? null : "open",}));
-                handleFilterClose();
-              }}
+              selected={activeFilters.status.includes("open")}
+              onClick={() => toggleFilter("status", "open")}
             >
-              <span style={{ marginRight: 8 }}>
-                {activeFilters.status === "open" ? "✔" : ""}
-              </span>
-            Status: Open
+              {activeFilters.status.includes("open") ? "✔" : ""}
+              Status: Open
             </MenuItem>
 
             {/* Status: Triaged*/}
             <MenuItem
-              selected={activeFilters.status === "triaged"}
-              onClick={() => {
-                setActiveFilters((prev) => ({...prev, status: prev.status === "triaged" ? null : "triaged",}));
-                handleFilterClose();
-              }}
+              selected={activeFilters.status.includes("triaged")}
+                onClick={() => toggleFilter("status", "triaged")}
             >
-              <span style={{ marginRight: 8 }}>
-                {activeFilters.status === "triaged" ? "✔" : ""}
-              </span>
-            Status: Triaged
+              {activeFilters.status.includes("triaged") ? "✔" : ""}
+              Status: Triaged
             </MenuItem>
 
             {/* Status: in-progress*/}
             <MenuItem
-              selected={activeFilters.status === "in_progress"}
-              onClick={() => {
-                setActiveFilters((prev) => ({...prev, status: prev.status === "in_progress" ? null : "in_progress",}));
-                handleFilterClose();
-              }}
+              selected={activeFilters.status.includes("in_progress")}
+              onClick={() => toggleFilter("status", "in_progress")}
             >
-              <span style={{ marginRight: 8 }}>
-                {activeFilters.status === "in_progress" ? "✔" : ""}
-              </span>
-            Status: In Progress
+              {activeFilters.status.includes("in_progress") ? "✔" : ""}
+              Status: In Progress
             </MenuItem>
 
             {/* Status: resolved*/}
             <MenuItem
-              selected={activeFilters.status === "closed"}
-              onClick={() => {
-                setActiveFilters((prev) => ({...prev, status: prev.status === "closed" ? null : "closed",}));
-                handleFilterClose();
-              }}
+              selected={activeFilters.status.includes("resolved")}
+              onClick={() => toggleFilter("status", "resolved")}
             >
-              <span style={{ marginRight: 8 }}>
-                {activeFilters.status === "closed" ? "✔" : ""}
-              </span>
-            Status: Closed
+              {activeFilters.status.includes("resolved") ? "✔" : ""}
+              Status: Closed
             </MenuItem>
 
-            {/* Severity Low */}
+            {/* Severity Low */}          
             <MenuItem
-              selected={activeFilters.severity === "low"}
-              onClick={() => {
-                setActiveFilters((prev) => ({...prev, severity: prev.severity === "low" ? null : "low",}));
-                handleFilterClose();
-              }}
+              selected={activeFilters.severity.includes("low")}
+              onClick={() => toggleFilter("severity", "low")}
             >
-              <span style={{ marginRight: 8 }}>
-                {activeFilters.severity === "low" ? "✔" : ""}
-              </span>
-            Severity: Low
+              {activeFilters.severity.includes("low") ? "✔" : ""}
+              Severity: Low
             </MenuItem>
             
             {/* Severity Medium */}
             <MenuItem
-              selected={activeFilters.severity === "medium"}
-              onClick={() => {
-                setActiveFilters((prev) => ({...prev, severity: prev.severity === "medium" ? null : "medium",}));
-                handleFilterClose();
-              }}
+              selected={activeFilters.severity.includes("medium")}
+              onClick={() => toggleFilter("severity", "medium")}
             >
-              <span style={{ marginRight: 8 }}>
-                {activeFilters.severity === "medium" ? "✔" : ""}
-              </span>
+              {activeFilters.severity.includes("medium") ? "✔" : ""}
               Severity: Medium
-              </MenuItem>
+            </MenuItem>
 
               {/* Severity High */}
               <MenuItem
-                selected={activeFilters.severity === "high"}
-                onClick={() => {
-                  setActiveFilters((prev) => ({...prev, severity: prev.severity === "high" ? null : "high",}));
-                  handleFilterClose();
-                }}
+                selected={activeFilters.severity.includes("high")}
+                onClick={() => toggleFilter("severity", "high")}
               >
-                <span style={{ marginRight: 8 }}>
-                  {activeFilters.severity === "high" ? "✔" : ""}
-                </span>
-              Severity: High
+                {activeFilters.severity.includes("high") ? "✔" : ""}
+                Severity: High
               </MenuItem>
 
               {/* Severity Critical */}
               <MenuItem
-              selected={activeFilters.severity === "critical"}
-              onClick={() => {
-                setActiveFilters((prev) => ({...prev, severity: prev.severity === "critical" ? null : "critical",}));
-                handleFilterClose();
-              }}
+                selected={activeFilters.severity.includes("critical")}
+                onClick={() => toggleFilter("severity", "critical")}
               >
-                <span style={{ marginRight: 8 }}>
-                  {activeFilters.severity === "critical" ? "✔" : ""}
-                </span>
-              Severity: Critical
+                {activeFilters.severity.includes("critical") ? "✔" : ""}
+                Severity: Critical
               </MenuItem>
             </Menu>
             <Button
