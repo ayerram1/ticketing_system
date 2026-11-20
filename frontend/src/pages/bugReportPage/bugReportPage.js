@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import {
   Alert,
@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import BugReportIcon from "@mui/icons-material/BugReport";
 import { useLocation } from "react-router-dom";
-
 const token = Cookies.get("token");
 const getBrowserName = () => {
         const ua = navigator.userAgent;
@@ -31,11 +30,13 @@ export default function BugReportPage() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [developers, setdevelopers] = useState([])
+  useEffect(() => {
+    fetchDevs();
+  }, []);
 
   const onChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-
-  //Need to work on this as the first time a high severity
+      //Need to work on this as the first time a high severity
   //bug is reporte it doesn't send out an email
   const fetchDevs = async ()=>{
     const response = await fetch(
@@ -51,20 +52,22 @@ export default function BugReportPage() {
     const data = await response.json();
     setdevelopers(data);
   }
+  
+
 
   //********************************************************************** */
   const onSubmit = async (e) => {
-    fetchDevs();
     e.preventDefault();
     setSubmitting(true);
     setResult(null);
     try {
+      const selectedDevs = developers
       //Need to work on this as high priority bugs aren't
       //sending emails the first time but each report after
       //does
-      if(form.priority=="High"){
+      if(form.priority=="High" && Array.isArray(selectedDevs)){
         const endpoint = "email-notification-4"
-      for (const developer of selectedDeveloper){
+      for (const developer of selectedDevs){
         const {email} = developer;
         console.log("send to", developer)
         try {
