@@ -2,11 +2,12 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs"); // Required for password change
 const StudentData = require("../models/StudentData");
 const Team = require("../models/Team");
+const Bugs = require("../models/bugreport")
 const { validatePassword } = require("../utils/passwordValidator");
 const sendEmail = require("../services/emailService");
 // github tracking
 
-const VALID_USER_ROLES = ["student", "TA", "admin", "grader", "developer"];
+const VALID_USER_ROLES = ["student", "TA", "admin", "grader", "developer", "c-developer"];
 const BCRYPT_HASH_RE = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
 
 
@@ -532,5 +533,126 @@ exports.emailNotification3 = async (req, res) => {
     }
 
     res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.emailNotification4 = async (req, res) => {
+  try {
+    const { name, email, role} = req.body;
+
+    if (!name || !email || !role) {
+    // if (!name || !email || !role) {
+      return res.status(400).json({ error: "Name, email, role, and password are required" });
+    }
+
+    if (!VALID_USER_ROLES.includes(role)) {
+      return res.status(400).json({ error: "Invalid role specified" });
+    }
+
+    const user = await User.findOne({ where: { email } });
+
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    // console.log('User stuff: ', user.password);
+
+
+    /*const Team = await StudentData.findAll(
+      {
+        where:{
+          team_id: StudentInfo.team_id
+        }
+      }
+    );*/
+
+    try {
+      const subject = "Urgent Bug report";
+      const emailBody = 
+      `
+      Hello developer ${user.name},
+
+
+      There has been a new bug reported to your dashboard that needs your urgent 
+      looking into.
+
+      Best regards,
+      ASU Capstone Help Desk Team
+       `;
+
+      await sendEmail(email, subject, emailBody);
+      console.log("Test email sent to", email);
+    } catch (emailError) {
+      console.error(`Failed to send email to ${email}:`, emailError);
+      return res.status(500).json({ error: "Failed to send notification email." });
+    }
+
+    return res.status(200).json({ message: "Test email sent.", user });
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+      return res.status(409).json({ error: 'Unique constraint', details });
+    }
+    if (error.name === 'SequelizeValidationError') {
+      const details = (error.errors || []).map(e => ({ path: e.path, message: e.message }));
+      return res.status(400).json({ error: 'Validation error', details });
+    }
+
+    res.status(500).json({ error: error.message });
+  }
+};
+
+  
+exports.updateDevRole = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.user_id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found"
+      });
+    }
+
+    const requesterRole = req.user?.role;
+
+    if (!["c-developer"].includes(requesterRole)) {
+      return res.status(403).json({
+        error: "Only Central Developers can change developer roles."
+      });
+    }
+
+    const { role } = req.body;
+
+    if (!["developer", "c-developer"].includes(role)) {
+      return res.status(400).json({
+        error: "Invalid developer role."
+      });
+    }
+
+    if (!["developer", "c-developer"].includes(user.role)) {
+      return res.status(400).json({
+        error: "This user is not a developer."
+      });
+    }
+
+    await user.update({ role });
+
+    return res.status(200).json({
+      message: "Developer role updated successfully.",
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    console.error("Update developer role error:", error);
+
+    return res.status(500).json({
+      error: error.message || "Failed to update developer role."
+    });
   }
 };

@@ -120,7 +120,7 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
               navigate("/instructordash");
             } else if (userType == "grader") {
               navigate("/graderdash");
-            } else if (userType == "developer") {
+            } else if (userType == "developer" || userType == "c-developer") {
               navigate("/developerdash");
             }
           }}
@@ -200,13 +200,13 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
         )}
 
         {/* Grader "My Tickets" Button */}
-        {userType=="developer" &&(
+        {userType=="developer" || userType=="c-developer"&&(
           <ListItemButton
             className="buttonStyle"
             selected={selectedPage === 1}
             onClick={() => {
               setSelectedPage(1);
-              navigate("/AdminDash");
+              navigate("/admindash");
             }}
           >
             <ListItemIcon>
@@ -217,7 +217,25 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
           
           
         )}
-        {userType=="developer" &&(
+
+        {userType=="developer" || userType=="c-developer" &&(
+          <ListItemButton
+            className="buttonStyle"
+            selected={selectedPage === 1}
+            onClick={() => {
+              setSelectedPage(1);
+              navigate("/instructordash");
+            }}
+          >
+            <ListItemIcon>
+              <ListIcon className="iconStyle" />
+            </ListItemIcon>
+            <ListItemText className="fontStyle" primary="Instructor View" />
+          </ListItemButton>
+          
+          
+        )}
+        {userType=="developer" || userType=="c-developer" &&(
           <ListItemButton
             className="buttonStyle"
             selected={selectedPage === 1}
@@ -235,7 +253,7 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
           
         )}
 
-        {userType=="developer" &&(
+        {userType=="developer" || userType=="c-developer" &&(
           <ListItemButton
             className="buttonStyle"
             selected={selectedPage === 1}
@@ -252,6 +270,8 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
           
           
         )}
+
+        
 
         
         {userType === "grader" && (
@@ -288,7 +308,7 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
           </ListItemButton>
         )}
 
-        {userType !== "developer" && (
+        {userType !== "developer"  || userType !== "c-developer"&& (
           <ListItemButton
             className="buttonStyle"
             selected={selectedPage === 2} // Assign a unique selectedPage index for "All Assignees"
@@ -348,7 +368,7 @@ const SideBar = ({isCollapsed = false, onToggle = () => {}}) => {
           <ListItemText className="fontStyle" primary="Help / FAQ" />
         </ListItemButton>
 
-        {userType !== "developer" && (
+        {userType !== "developer" || userType !=="c-developer" && (
           <ListItemButton
             className="buttonStyle"
             selected={selectedPage === 7}

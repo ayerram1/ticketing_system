@@ -10,7 +10,7 @@ const reporterInclude = {
 };
 const AUTO_CLOSE_DELAY_MS = 24 * 60 * 60 * 1000;
 
-const isDevOrAdmin = (req) => ["developer", "admin"].includes(req.user?.role);
+const isDevOrAdmin = (req) => [,"c-developer", "developer", "admin"].includes(req.user?.role);
 const authorInclude = { model: User, as: "author", attributes: ["user_id", "name"] };
 
 const withPriority = (row) => {
