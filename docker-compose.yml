@@ -32,6 +32,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-development_secret_key_change_in_production}
       CORS_ORIGINS: http://localhost:3000,http://localhost:3001
       FRONTEND_URL: http://localhost:3001
+      TURNSTILE_SECRET: ${TURNSTILE_SECRET:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      TURNSTILE_HOSTNAMES: ${TURNSTILE_HOSTNAMES:-localhost,127.0.0.1,helpdesk.asucapstonetools.com}
     volumes:
       - ./backend:/app
     depends_on:
@@ -49,6 +52,7 @@ services:
       - "3001:3001"
     environment:
       REACT_APP_API_BASE_URL: http://localhost:3301
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-0x4AAAAAAF9VvXnTwqQwdO17}
     volumes:
       - ./frontend:/app
     depends_on:

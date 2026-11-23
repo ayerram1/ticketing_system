@@ -5,6 +5,55 @@ const sendEmail = require("../services/emailService");
 const { validatePassword } = require("../utils/passwordValidator");
 
 exports.login = async (req, res) => {
+  const token = req.body["cf-turnstile-response"] || req.body.turnstileToken;
+  const clientIp = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  const expectedAction = "login";
+  const expectedHostnames = new Set(
+    (process.env.TURNSTILE_HOSTNAMES ?? "localhost,127.0.0.1,helpdesk.asucapstonetools.com")
+      .split(",")
+      .map((hostname) => hostname.trim())
+      .filter(Boolean),
+  );
+
+  const turnstileSecret = process.env.TURNSTILE_SECRET || process.env.TURNSTILE_SECRET_KEY;
+
+  if (
+    typeof token !== "string" ||
+    token.length === 0 ||
+    token.length > 2048 ||
+    expectedHostnames.size === 0 ||
+    !turnstileSecret
+  ) {
+    return res.status(403).json({ error: "Captcha verification failed: token missing or invalid" });
+  }
+
+  let result;
+  try {
+    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      signal: AbortSignal.timeout(10_000),
+      body: new URLSearchParams({
+        secret: turnstileSecret,
+        response: token,
+        ...(clientIp ? { remoteip: clientIp } : {}),
+      }),
+    });
+    if (!r.ok) throw new Error(`siteverify ${r.status}`);
+    result = await r.json();
+  } catch (err) {
+    console.error("Turnstile siteverify error:", err);
+    return res.status(403).json({ error: "Captcha verification failed" });
+  }
+
+  if (
+    !result.success ||
+    (result.action && result.action !== expectedAction) ||
+    !expectedHostnames.has(result.hostname)
+  ) {
+    return res.status(403).json({ error: "Captcha verification failed" });
+  }
+
   const email = String(req.body.email ?? "").trim().toLowerCase();
   const { password } = req.body;
 
