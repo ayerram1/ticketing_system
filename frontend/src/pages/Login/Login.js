@@ -258,6 +258,7 @@ export default function SignIn() {
             else if (userType === "TA") navigate("/instructordash");
             else if (userType === "grader") navigate("/graderdash");
             else if (userType === "developer") navigate("/developerdash");
+            else if (userType === "c-developer") navigate("/developerdash");
         } catch (e) {
             console.error(e);
             resetCaptcha();

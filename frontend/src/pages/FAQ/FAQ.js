@@ -139,56 +139,56 @@ const FAQ_ITEMS = [
     question: "What do the bug report statuses mean?",
     answer:
       "Open means newly submitted and not yet reviewed. Triaged means reviewed and prioritized. In Progress means someone is working on it. Resolved means a fix is done. Closed means finished and locked.",
-    roles: ["developer"],
+    roles: ["developer", "c-developer"],
   },
   {
     id: "dev-bug-severity-meaning",
     question: "How should I choose a severity?",
     answer:
       "Low is a cosmetic or minor issue. Medium affects a feature but has a workaround. High blocks a feature for many users. Critical means the system is unusable or data is at risk.",
-    roles: ["developer"],
+    roles: ["developer", "c-developer"],
   },
   {
     id: "dev-update-bug",
     question: "How do I update a bug report?",
     answer:
       "Click a report in the table to open it, change the status or severity, and press Save Changes.",
-    roles: ["developer"],
+    roles: ["developer", "c-developer"],
   },
   {
     id: "dev-closed-locked",
     question: "Why can't I edit a bug report?",
     answer:
       "Closed reports are locked. Reports marked Resolved are closed automatically after 24 hours, so reopen the work by submitting a new report if the problem comes back.",
-    roles: ["developer"],
+    roles: ["developer", "c-developer"],
   },
   {
     id: "dev-find-bugs",
     question: "How do I find a specific bug report?",
     answer:
       "Use the search box to search subjects, descriptions, and reporter names. Use Add Filters to filter by status or severity and to sort by newest or oldest. Press Clear Filters to reset.",
-    roles: ["developer"],
+    roles: ["developer", "c-developer"],
   },
   {
     id: "dev-summary-cards",
     question: "What do the summary cards show?",
     answer:
       "They count all bug reports regardless of your filters: total, open, in progress (triaged and in progress), active critical reports, and resolved or closed reports.",
-    roles: ["developer"],
+    roles: ["developer", "c-developer"],
   },
   {
     id: "dev-internal-notes",
     question: "What are internal notes?",
     answer:
       "Notes you add inside a bug report to share progress with other developers. Only developers and admins can see them. The person who reported the bug cannot.",
-    roles: ["developer"],
+    roles: ["developer", "c-developer"],
   },
   {
     id: "dev-reporter-context",
     question: "What is reporter context?",
     answer:
       "Details saved when the bug was submitted: the reporter's role, the page they were on, their browser, and their window size. Use it to reproduce the problem. Reports submitted before this feature may not have it.",
-    roles: ["developer"],
+    roles: ["developer", "c-developer"],
   },
 ];
 

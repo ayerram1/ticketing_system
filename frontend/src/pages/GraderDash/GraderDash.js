@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import InstructorCard from "../../components/InstructorCard";
 import Pagination from "../../components/Pagination/Pagination";
 import { fetchTicketAssignmentsByUserId, fetchTicketById } from "../../services/ticketServices";
+import GraderChart from './GraderGraph.js';
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 const GraderDash = () => {
@@ -449,6 +450,17 @@ const GraderDash = () => {
                     ))}
                 </div>
             </Box>
+            <Box sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2.5,
+          backgroundColor: theme.palette.background.paper,
+          padding: 2.5,
+          borderRadius: 1,
+          flex: 1,
+        }}>
+        <GraderChart/>
+      </Box>
         </Box>
     );
 };

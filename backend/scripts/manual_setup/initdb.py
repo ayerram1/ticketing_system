@@ -13,7 +13,7 @@ TABLES['Users'] = (
     "  user_id SERIAL PRIMARY KEY,"
     "  name VARCHAR(100) NOT NULL,"
     "  email VARCHAR(100) UNIQUE NOT NULL,"
-    "  role VARCHAR(10) CHECK (role IN ('student', 'TA', 'admin', 'grader', 'developer')) NOT NULL,"
+    "  role VARCHAR(10) CHECK (role IN ('student', 'TA', 'admin', 'grader', 'developer', 'c-developer')) NOT NULL,"
     "  password VARCHAR(255) NOT NULL DEFAULT 'test'"
     # "  asu_id VARCHAR(10) NOT NULL"
     ")"

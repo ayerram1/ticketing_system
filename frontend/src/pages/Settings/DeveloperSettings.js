@@ -122,6 +122,15 @@ const DeveloperSettings = () => {
 
       <Divider sx={{ margin: "30px 0" }} />
 
+      <Button
+          variant="contained"
+          onClick={() => navigate("/managedevelopers")}
+      >
+          Manage Developers
+      </Button>
+
+      <Divider sx={{ margin: "30px 0" }} />
+
       <Typography variant="h6" gutterBottom>
         Account Management
       </Typography>
